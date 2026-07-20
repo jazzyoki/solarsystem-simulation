@@ -15,23 +15,25 @@ function renderToolbar(overrides: Partial<ToolbarProps> = {}) {
 }
 
 describe('Toolbar', () => {
-  it('renders the three speed buttons and pause', () => {
+  it('renders all five speed buttons and pause', () => {
     renderToolbar();
-    for (const label of ['1x', '100x', '1000x', 'Pause']) {
+    for (const label of ['0.5x', '1x', '10x', '100x', '1000x', 'Pause']) {
       expect(screen.getByRole('button', { name: label })).toBeTruthy();
     }
   });
 
   it('marks the active speed', () => {
-    renderToolbar({ multiplier: 100 });
-    expect(screen.getByRole('button', { name: '100x' }).getAttribute('aria-pressed')).toBe('true');
+    renderToolbar({ multiplier: 10 });
+    expect(screen.getByRole('button', { name: '10x' }).getAttribute('aria-pressed')).toBe('true');
     expect(screen.getByRole('button', { name: '1x' }).getAttribute('aria-pressed')).toBe('false');
   });
 
   it('calls onSelectSpeed when a speed button is clicked', () => {
     const props = renderToolbar();
-    fireEvent.click(screen.getByRole('button', { name: '1000x' }));
-    expect(props.onSelectSpeed).toHaveBeenCalledWith(1000);
+    fireEvent.click(screen.getByRole('button', { name: '0.5x' }));
+    expect(props.onSelectSpeed).toHaveBeenCalledWith(0.5);
+    fireEvent.click(screen.getByRole('button', { name: '10x' }));
+    expect(props.onSelectSpeed).toHaveBeenCalledWith(10);
   });
 
   it('shows Resume while paused and toggles on click', () => {

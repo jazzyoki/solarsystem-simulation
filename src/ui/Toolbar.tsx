@@ -7,7 +7,7 @@ export interface ToolbarProps {
   onTogglePause: () => void;
 }
 
-const SPEEDS: SpeedMultiplier[] = [1, 100, 1000];
+const SPEEDS: SpeedMultiplier[] = [0.5, 1, 10, 100, 1000];
 
 export function Toolbar({ multiplier, paused, onSelectSpeed, onTogglePause }: ToolbarProps) {
   return (
