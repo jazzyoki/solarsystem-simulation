@@ -71,10 +71,14 @@ export function useSimulation(canvasRef: React.RefObject<HTMLCanvasElement | nul
     const onPointerUp = () => {
       dragging = false;
     };
+    const endDrag = () => {
+      dragging = false;
+    };
     canvas.addEventListener('wheel', onWheel, { passive: false });
     canvas.addEventListener('pointerdown', onPointerDown);
     canvas.addEventListener('pointermove', onPointerMove);
-    canvas.addEventListener('pointerup', onPointerUp);
+    canvas.addEventListener('pointerup', endDrag);
+    canvas.addEventListener('pointercancel', endDrag);
 
     let rafId = 0;
     let lastTime = performance.now();
@@ -98,7 +102,8 @@ export function useSimulation(canvasRef: React.RefObject<HTMLCanvasElement | nul
       canvas.removeEventListener('wheel', onWheel);
       canvas.removeEventListener('pointerdown', onPointerDown);
       canvas.removeEventListener('pointermove', onPointerMove);
-      canvas.removeEventListener('pointerup', onPointerUp);
+      canvas.removeEventListener('pointerup', endDrag);
+      canvas.removeEventListener('pointercancel', endDrag);
     };
   }, [canvasRef]);
 

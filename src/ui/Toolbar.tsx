@@ -23,7 +23,7 @@ export function Toolbar({ multiplier, paused, onSelectSpeed, onTogglePause }: To
           {speed}x
         </button>
       ))}
-      <button type="button" onClick={onTogglePause}>
+      <button type="button" aria-pressed={paused} onClick={onTogglePause}>
         {paused ? 'Resume' : 'Pause'}
       </button>
     </div>
