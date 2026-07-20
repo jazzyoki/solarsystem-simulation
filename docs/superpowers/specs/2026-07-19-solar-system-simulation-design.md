@@ -131,8 +131,8 @@ class Simulation {
 
 // camera.ts
 class Camera {
-  scale: number; offsetX: number; offsetY: number
-  worldToScreen(p: BodyPosition): BodyPosition
+  scale: number; centerX: number; centerY: number // (centerX, centerY) = screen px of world origin
+  worldToScreen(p: BodyPosition): BodyPosition // world is y-up: flips y so prograde renders CCW
   screenToWorld(p: BodyPosition): BodyPosition
   zoomAt(screenPoint: BodyPosition, factor: number): void // keeps screenPoint fixed
   panBy(dx: number, dy: number): void
@@ -165,10 +165,10 @@ function drawScene(ctx: CanvasRenderingContext2D, snap: Snapshot, layout: Layout
 ## Rendering
 
 Draw order per frame: dark background (`#0a0e1a`) → planet orbit guide circles
-(faint, `#ffffff14`) → sun (radial glow + disc `#ffcc33`) → for each planet: moon
-guide circles (faint), planet disc (`color`), planet label (`11px sans-serif`,
-constant screen size, offset up-right), moon dots (`#bbbbbb`). Canvas resizes with
-`ResizeObserver`; devicePixelRatio-aware.
+(faint, `#ffffff14`) → sun (radial glow + disc `#ffcc33`) → for each planet: one
+moon-bubble guide circle (faint, planets with moons only), planet disc (`color`),
+planet label (`11px sans-serif`, constant screen size, offset up-right), moon dots
+(`#bbbbbb`). Canvas resizes with `ResizeObserver`; devicePixelRatio-aware.
 
 ## UI
 
