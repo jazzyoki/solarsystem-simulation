@@ -1,7 +1,25 @@
+import type { Layout } from './layout';
 import type { MoonSpec, PlanetSpec } from './types';
 
 export const SUN = { name: 'Sun', bodyRadius: 22, color: '#ffcc33' } as const;
 export const MOON_STYLE = { bodyRadius: 1.5, color: '#bbbbbb' } as const;
+
+export const ASTEROID_BELT = {
+  count: 400,
+  seed: 42_000,
+  color: 'rgba(170, 170, 190, 0.45)',
+  minRadius: 0.4,
+  maxRadius: 1.6,
+  getRadii(layout: Layout) {
+    const mars = layout.planets.Mars;
+    const jupiter = layout.planets.Jupiter;
+    const gap = 10;
+    return {
+      inner: mars.orbitRadius + mars.bubbleRadius + gap,
+      outer: jupiter.orbitRadius - jupiter.bubbleRadius - gap,
+    };
+  },
+} as const;
 
 export const PLANETS: PlanetSpec[] = [
   { name: 'Mercury', periodDays: 87.9691, bodyRadius: 4, color: '#9c8e82' },
