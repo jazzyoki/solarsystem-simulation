@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
+import { buildAsteroidBelt } from '../render/asteroidBelt';
 import { Camera } from '../render/camera';
 import { drawScene } from '../render/drawScene';
 import type { SpeedMultiplier } from '../sim/clock';
+import { ASTEROID_BELT } from '../sim/data';
 import { formatSimDate } from '../sim/formatDate';
 import { Simulation } from '../sim/simulation';
 
@@ -22,6 +24,7 @@ export function useSimulation(canvasRef: React.RefObject<HTMLCanvasElement | nul
     const sim = new Simulation();
     simRef.current = sim;
     const camera = new Camera();
+    const asteroids = buildAsteroidBelt(sim.layout, ASTEROID_BELT.seed, ASTEROID_BELT.count);
     const outermost = Math.max(
       ...Object.values(sim.layout.planets).map((e) => e.orbitRadius + e.bubbleRadius),
     );
@@ -84,7 +87,7 @@ export function useSimulation(canvasRef: React.RefObject<HTMLCanvasElement | nul
       const dt = (now - lastTime) / 1000;
       lastTime = now;
       sim.advance(dt);
-      drawScene(ctx, sim.snapshot(), sim.layout, camera, width, height);
+      drawScene(ctx, sim.snapshot(), sim.layout, camera, width, height, asteroids);
       if (++framesSinceDateUpdate >= DATE_UPDATE_INTERVAL_FRAMES) {
         framesSinceDateUpdate = 0;
         setDate(formatSimDate(sim.clock.simDays));

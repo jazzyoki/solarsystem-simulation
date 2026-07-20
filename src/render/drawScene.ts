@@ -1,6 +1,7 @@
 import type { Layout } from '../sim/layout';
 import type { Snapshot } from '../sim/simulation';
 import type { Camera } from './camera';
+import { drawAsteroidBelt, type AsteroidState } from './asteroidBelt';
 import { labelOpacity, moonOpacity, type ViewportSize } from './visibility';
 
 const BACKGROUND = '#0a0e1a';
@@ -16,6 +17,7 @@ export function drawScene(
   camera: Camera,
   viewportW: number,
   viewportH: number,
+  asteroids: AsteroidState[] = [],
 ): void {
   ctx.fillStyle = BACKGROUND;
   ctx.fillRect(0, 0, viewportW, viewportH);
@@ -31,6 +33,11 @@ export function drawScene(
     ctx.beginPath();
     ctx.arc(origin.x, origin.y, layout.planets[body.name].orbitRadius * camera.scale, 0, Math.PI * 2);
     ctx.stroke();
+  }
+
+  // Asteroid belt behind planets.
+  if (asteroids.length > 0) {
+    drawAsteroidBelt(ctx, asteroids, camera, snap.simDays);
   }
 
   let currentMoonOpacity = 0;

@@ -16,6 +16,7 @@ function createMockCtx(): MockCtx {
     fillRect: vi.fn(),
     beginPath: vi.fn(),
     arc: vi.fn(),
+    moveTo: vi.fn(),
     fill: vi.fn(),
     stroke: vi.fn(),
     fillText: vi.fn(),
@@ -107,5 +108,22 @@ describe('drawScene', () => {
       { width: 800, height: 600 },
     );
     expect(alphaValue).toBeCloseTo(expectedOpacity, 10);
+  });
+
+  it('draws the asteroid belt when asteroids are passed', () => {
+    const sim = new Simulation();
+    const camera = new Camera();
+    camera.fitToView(80, 800, 600);
+    const ctx = createMockCtx();
+    const belt = Array.from({ length: 400 }, (_, i) => ({
+      radius: 1,
+      orbitRadius: 250 + i,
+      angleOffset: 0,
+      periodDays: 1000,
+    }));
+
+    drawScene(ctx, sim.snapshot(), sim.layout, camera, 800, 600, belt);
+
+    expect(ctx.arc).toHaveBeenCalledTimes(522); // 122 + 400 belt asteroids
   });
 });
