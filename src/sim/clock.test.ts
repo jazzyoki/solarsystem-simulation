@@ -9,20 +9,20 @@ describe('SimClock', () => {
     expect(c.paused).toBe(false);
   });
 
-  it('advances 1 day per real second at 1x', () => {
+  it('advances 1 day per real second at 1x for frame dt below the cap', () => {
     const c = new SimClock();
-    c.advance(1);
-    expect(c.simDays).toBeCloseTo(1, 10);
+    c.advance(0.1);
+    expect(c.simDays).toBeCloseTo(0.1, 10);
   });
 
-  it('advances proportionally to the multiplier', () => {
+  it('advances proportionally to the multiplier for frame dt below the cap', () => {
     const c = new SimClock();
     c.setMultiplier(100);
-    c.advance(0.5);
-    expect(c.simDays).toBeCloseTo(50, 10);
+    c.advance(0.1);
+    expect(c.simDays).toBeCloseTo(10, 10);
     c.setMultiplier(1000);
     c.advance(0.016);
-    expect(c.simDays).toBeCloseTo(66, 10);
+    expect(c.simDays).toBeCloseTo(26, 10);
   });
 
   it('does not advance while paused', () => {
@@ -31,8 +31,8 @@ describe('SimClock', () => {
     c.advance(1);
     expect(c.simDays).toBe(0);
     c.setPaused(false);
-    c.advance(1);
-    expect(c.simDays).toBeCloseTo(1, 10);
+    c.advance(0.1);
+    expect(c.simDays).toBeCloseTo(0.1, 10);
   });
 
   it('clamps huge frame deltas to 0.25 s', () => {
