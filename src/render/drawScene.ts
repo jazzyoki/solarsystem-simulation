@@ -1,5 +1,4 @@
 import type { Layout } from '../sim/layout';
-import { MOONS } from '../sim/data';
 import type { Snapshot } from '../sim/simulation';
 import type { Camera } from './camera';
 import { labelOpacity, moonOpacity, type ViewportSize } from './visibility';
@@ -9,8 +8,6 @@ const ORBIT_GUIDE = 'rgba(255, 255, 255, 0.08)';
 const BUBBLE_GUIDE = 'rgba(255, 255, 255, 0.05)';
 const LABEL_COLOR = 'rgba(255, 255, 255, 0.75)';
 const LABEL_FONT = '11px system-ui, sans-serif';
-
-const moonParent = new Map(MOONS.map((m) => [m.name, m.parent]));
 
 export function drawScene(
   ctx: CanvasRenderingContext2D,
