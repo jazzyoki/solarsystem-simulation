@@ -2,3 +2,5 @@ node_modules/
 dist/
 .worktrees/
 .superpowers/
+.agents/
+skills-lock.json
