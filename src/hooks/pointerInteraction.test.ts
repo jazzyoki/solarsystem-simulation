@@ -38,7 +38,8 @@ describe('PointerInteraction', () => {
 
     pi.pointerDown(1, { x: 300, y: 300 });
     pi.pointerDown(2, { x: 500, y: 300 });
-    pi.pointerMove(2, { x: 600, y: 300 });
+    pi.pointerMove(1, { x: 250, y: 300 });
+    pi.pointerMove(2, { x: 550, y: 300 });
 
     expect(camera.scale).toBeCloseTo(3);
     expect(camera.centerX).toBeCloseTo(400);
