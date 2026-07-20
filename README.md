@@ -27,7 +27,7 @@ Open the URL shown in your terminal (usually `http://localhost:5173`).
 
 ## Deploying with Nginx
 
-A sample `nginx.conf` is provided in the project root. It serves the Vite production build from `dist/` on port `5199` with gzip compression and SPA fallback routing.
+A sample `nginx.conf` is provided in the project root. It reverse-proxies requests from port `5199` to the Vite dev server on port `5173`, including WebSocket support for Hot Module Replacement (HMR).
 
 ### Example configuration
 
@@ -36,21 +36,18 @@ server {
     listen 5199;
     server_name localhost;
 
-    root /var/www/solarsystem-simulation/dist;
-    index index.html;
-
-    gzip on;
-    gzip_vary on;
-    gzip_min_length 1024;
-    gzip_types text/plain text/css application/json application/javascript text/xml image/svg+xml;
-
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|otf)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-    }
-
     location / {
-        try_files $uri $uri/ /index.html;
+        proxy_pass http://localhost:5173;
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # WebSocket support required for Vite HMR
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
     }
 }
 ```
@@ -58,13 +55,11 @@ server {
 ### Usage
 
 ```bash
-# Build the production bundle
-npm run build
+# 1. Start the Vite dev server
+npm run dev
 
-# Test the nginx configuration
+# 2. In another terminal, test and start nginx
 nginx -t -c /path/to/nginx.conf
-
-# Start nginx with the provided config
 nginx -c /path/to/nginx.conf
 ```
 
