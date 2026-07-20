@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { buildAsteroidBelt } from '../render/asteroidBelt';
 import { Camera } from '../render/camera';
 import { drawScene } from '../render/drawScene';
+import { PointerInteraction } from './pointerInteraction';
 import type { SpeedMultiplier } from '../sim/clock';
 import { ASTEROID_BELT } from '../sim/data';
 import { formatSimDate } from '../sim/formatDate';
@@ -24,6 +25,7 @@ export function useSimulation(canvasRef: React.RefObject<HTMLCanvasElement | nul
     const sim = new Simulation();
     simRef.current = sim;
     const camera = new Camera();
+    const pointerInteraction = new PointerInteraction(camera);
     const asteroids = buildAsteroidBelt(sim.layout, ASTEROID_BELT.seed, ASTEROID_BELT.count);
     const outermost = Math.max(
       ...Object.values(sim.layout.planets).map((e) => e.orbitRadius + e.bubbleRadius),
@@ -56,29 +58,34 @@ export function useSimulation(canvasRef: React.RefObject<HTMLCanvasElement | nul
         e.deltaY < 0 ? 1.1 : 1 / 1.1,
       );
     };
-    let dragging = false;
-    let lastX = 0;
-    let lastY = 0;
+    const toCanvasPoint = (e: PointerEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    };
+
     const onPointerDown = (e: PointerEvent) => {
-      dragging = true;
-      lastX = e.clientX;
-      lastY = e.clientY;
+      if (e.button !== 0) return;
+      pointerInteraction.pointerDown(e.pointerId, toCanvasPoint(e));
       canvas.setPointerCapture(e.pointerId);
     };
+
     const onPointerMove = (e: PointerEvent) => {
-      if (!dragging) return;
-      camera.panBy(e.clientX - lastX, e.clientY - lastY);
-      lastX = e.clientX;
-      lastY = e.clientY;
+      if (pointerInteraction.activeCount() === 0) return;
+      pointerInteraction.pointerMove(e.pointerId, toCanvasPoint(e));
     };
-    const endDrag = () => {
-      dragging = false;
+
+    const onPointerUp = (e: PointerEvent) => {
+      pointerInteraction.pointerUp(e.pointerId);
+    };
+
+    const onPointerCancel = (e: PointerEvent) => {
+      pointerInteraction.pointerUp(e.pointerId);
     };
     canvas.addEventListener('wheel', onWheel, { passive: false });
     canvas.addEventListener('pointerdown', onPointerDown);
     canvas.addEventListener('pointermove', onPointerMove);
-    canvas.addEventListener('pointerup', endDrag);
-    canvas.addEventListener('pointercancel', endDrag);
+    canvas.addEventListener('pointerup', onPointerUp);
+    canvas.addEventListener('pointercancel', onPointerCancel);
 
     let rafId = 0;
     let lastTime = performance.now();
@@ -102,8 +109,8 @@ export function useSimulation(canvasRef: React.RefObject<HTMLCanvasElement | nul
       canvas.removeEventListener('wheel', onWheel);
       canvas.removeEventListener('pointerdown', onPointerDown);
       canvas.removeEventListener('pointermove', onPointerMove);
-      canvas.removeEventListener('pointerup', endDrag);
-      canvas.removeEventListener('pointercancel', endDrag);
+      canvas.removeEventListener('pointerup', onPointerUp);
+      canvas.removeEventListener('pointercancel', onPointerCancel);
     };
   }, [canvasRef]);
 
