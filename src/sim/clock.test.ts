@@ -17,12 +17,18 @@ describe('SimClock', () => {
 
   it('advances proportionally to the multiplier for frame dt below the cap', () => {
     const c = new SimClock();
+    c.setMultiplier(0.5);
+    c.advance(0.1);
+    expect(c.simDays).toBeCloseTo(0.05, 10);
+    c.setMultiplier(10);
+    c.advance(0.1);
+    expect(c.simDays).toBeCloseTo(1.05, 10);
     c.setMultiplier(100);
     c.advance(0.1);
-    expect(c.simDays).toBeCloseTo(10, 10);
+    expect(c.simDays).toBeCloseTo(11.05, 10);
     c.setMultiplier(1000);
     c.advance(0.016);
-    expect(c.simDays).toBeCloseTo(26, 10);
+    expect(c.simDays).toBeCloseTo(27.05, 10);
   });
 
   it('does not advance while paused', () => {

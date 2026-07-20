@@ -1,4 +1,4 @@
-export type SpeedMultiplier = 1 | 100 | 1000;
+export type SpeedMultiplier = 0.5 | 1 | 10 | 100 | 1000;
 
 /** Max real seconds consumed per advance() call (tab-switch guard). */
 export const MAX_FRAME_DT_SECONDS = 0.25;
