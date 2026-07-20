@@ -1,12 +1,16 @@
 import type { Layout } from '../sim/layout';
+import { MOONS } from '../sim/data';
 import type { Snapshot } from '../sim/simulation';
 import type { Camera } from './camera';
+import { labelOpacity, moonOpacity, type ViewportSize } from './visibility';
 
 const BACKGROUND = '#0a0e1a';
 const ORBIT_GUIDE = 'rgba(255, 255, 255, 0.08)';
 const BUBBLE_GUIDE = 'rgba(255, 255, 255, 0.05)';
 const LABEL_COLOR = 'rgba(255, 255, 255, 0.75)';
 const LABEL_FONT = '11px system-ui, sans-serif';
+
+const moonParent = new Map(MOONS.map((m) => [m.name, m.parent]));
 
 export function drawScene(
   ctx: CanvasRenderingContext2D,
@@ -20,6 +24,7 @@ export function drawScene(
   ctx.fillRect(0, 0, viewportW, viewportH);
 
   const origin = camera.worldToScreen({ x: 0, y: 0 });
+  const viewport: ViewportSize = { width: viewportW, height: viewportH };
 
   // Planet orbit guides (circles around the sun).
   ctx.strokeStyle = ORBIT_GUIDE;
@@ -31,7 +36,19 @@ export function drawScene(
     ctx.stroke();
   }
 
+  let currentMoonOpacity = 0;
+  let currentLabelOpacity = 0;
+
   for (const body of snap.bodies) {
+    if (body.kind === 'planet') {
+      const bubbleDiameter = layout.planets[body.name].bubbleRadius * camera.scale * 2;
+      currentMoonOpacity = moonOpacity(bubbleDiameter, viewport);
+      currentLabelOpacity = labelOpacity(bubbleDiameter, viewport);
+    }
+
+    // Moon bodies are fully transparent at this zoom level; skip them.
+    if (body.kind === 'moon' && currentMoonOpacity <= 0) continue;
+
     const p = camera.worldToScreen(body);
     const r = Math.max(body.bodyRadius * camera.scale, body.kind === 'moon' ? 0.75 : 1.5);
 
@@ -45,10 +62,19 @@ export function drawScene(
       ctx.fill();
     }
 
+    if (body.kind === 'moon') {
+      ctx.save();
+      ctx.globalAlpha = currentMoonOpacity;
+    }
+
     ctx.fillStyle = body.color;
     ctx.beginPath();
     ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
     ctx.fill();
+
+    if (body.kind === 'moon') {
+      ctx.restore();
+    }
 
     if (body.kind === 'planet') {
       const { bubbleRadius } = layout.planets[body.name];
@@ -61,6 +87,15 @@ export function drawScene(
       ctx.fillStyle = LABEL_COLOR;
       ctx.font = LABEL_FONT;
       ctx.fillText(body.name, p.x + r + 4, p.y - r - 4);
+    }
+
+    if (body.kind === 'moon' && currentLabelOpacity > 0) {
+      ctx.save();
+      ctx.globalAlpha = currentLabelOpacity;
+      ctx.fillStyle = LABEL_COLOR;
+      ctx.font = LABEL_FONT;
+      ctx.fillText(body.name, p.x + r + 4, p.y - r - 4);
+      ctx.restore();
     }
   }
 }
