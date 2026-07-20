@@ -68,9 +68,6 @@ export function useSimulation(canvasRef: React.RefObject<HTMLCanvasElement | nul
       lastX = e.clientX;
       lastY = e.clientY;
     };
-    const onPointerUp = () => {
-      dragging = false;
-    };
     const endDrag = () => {
       dragging = false;
     };
