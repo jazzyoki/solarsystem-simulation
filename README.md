@@ -25,6 +25,51 @@ Open the URL shown in your terminal (usually `http://localhost:5173`).
 - `npm test` — run the Vitest test suite
 - `npm run build` — type-check and build for production
 
+## Deploying with Nginx
+
+A sample `nginx.conf` is provided in the project root. It serves the Vite production build from `dist/` on port `5199` with gzip compression and SPA fallback routing.
+
+### Example configuration
+
+```nginx
+server {
+    listen 5199;
+    server_name localhost;
+
+    root /var/www/solarsystem-simulation/dist;
+    index index.html;
+
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css application/json application/javascript text/xml image/svg+xml;
+
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|otf)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+```
+
+### Usage
+
+```bash
+# Build the production bundle
+npm run build
+
+# Test the nginx configuration
+nginx -t -c /path/to/nginx.conf
+
+# Start nginx with the provided config
+nginx -c /path/to/nginx.conf
+```
+
+Then open `http://localhost:5199`.
+
 ## Implementation Notes
 
 - The `Simulation` class advances simulated days and produces a snapshot of body positions.
