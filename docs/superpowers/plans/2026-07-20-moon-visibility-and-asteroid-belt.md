@@ -61,9 +61,9 @@ describe('visibility', () => {
   });
 
   it('fades linearly between moon thresholds', () => {
-    expect(moonOpacity(160, viewport)).toBeCloseTo(0.25, 5);
-    expect(moonOpacity(200, viewport)).toBeCloseTo(0.5, 5);
-    expect(moonOpacity(240, viewport)).toBeCloseTo(0.9, 5);
+    expect(moonOpacity(140, viewport)).toBeCloseTo(0.25, 5);
+    expect(moonOpacity(160, viewport)).toBeCloseTo(0.5, 5);
+    expect(moonOpacity(180, viewport)).toBeCloseTo(0.75, 5);
   });
 
   it('returns 0 below the label threshold', () => {
@@ -75,9 +75,9 @@ describe('visibility', () => {
   });
 
   it('fades linearly between label thresholds', () => {
-    expect(labelOpacity(360, viewport)).toBeCloseTo(0.25, 5);
-    expect(labelOpacity(400, viewport)).toBeCloseTo(0.5, 5);
-    expect(labelOpacity(440, viewport)).toBeCloseTo(0.9, 5);
+    expect(labelOpacity(300, viewport)).toBeCloseTo(0.25, 5);
+    expect(labelOpacity(320, viewport)).toBeCloseTo(0.5, 5);
+    expect(labelOpacity(340, viewport)).toBeCloseTo(0.75, 5);
   });
 });
 ```
@@ -121,7 +121,7 @@ export function labelOpacity(bubbleScreenDiameter: number, viewport: ViewportSiz
 npx vitest run src/render/visibility.test.ts
 ```
 
-Expected: PASS (8 tests).
+Expected: PASS (6 tests).
 
 - [ ] **Step 5: Commit**
 

@@ -27,7 +27,7 @@ function createMockCtx(): MockCtx {
     fns,
   ) as unknown as MockCtx;
 
-  const globalAlphaSetter = vi.fn((v: number) => {}) as Mock<(v: number) => void>;
+  const globalAlphaSetter = vi.fn() as Mock<(v: number) => void>;
   Object.defineProperty(ctx, 'globalAlpha', {
     get() {
       const calls = globalAlphaSetter.mock.calls;

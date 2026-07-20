@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { MOONS, PLANETS } from '../sim/data';
 import { computeLayout } from '../sim/layout';
+import type { Camera } from './camera';
 import { buildAsteroidBelt, drawAsteroidBelt, type AsteroidState } from './asteroidBelt';
 
 const layout = computeLayout(PLANETS, MOONS);
@@ -45,9 +46,9 @@ describe('drawAsteroidBelt', () => {
       moveTo: vi.fn(),
       fill: vi.fn(),
     } as unknown as CanvasRenderingContext2D;
-    const camera = { worldToScreen: vi.fn((p) => p), scale: 2 };
+    const camera = { worldToScreen: vi.fn((p) => p), scale: 2 } as unknown as Camera;
     const belt = buildAsteroidBelt(layout, 7, 10);
-    drawAsteroidBelt(ctx, belt, camera as any, 0);
+    drawAsteroidBelt(ctx, belt, camera, 0);
     expect(ctx.arc).toHaveBeenCalledTimes(10);
     expect(ctx.fill).toHaveBeenCalledTimes(1);
   });
@@ -60,11 +61,11 @@ describe('drawAsteroidBelt', () => {
       moveTo: vi.fn(),
       fill: vi.fn(),
     } as unknown as CanvasRenderingContext2D;
-    const camera = { worldToScreen: vi.fn((p) => p), scale: 2 };
+    const camera = { worldToScreen: vi.fn((p) => p), scale: 2 } as unknown as Camera;
     const belt: AsteroidState[] = [
       { radius: 1, orbitRadius: 200, angleOffset: 0, periodDays: 100 },
     ];
-    drawAsteroidBelt(ctx, belt, camera as any, 25);
+    drawAsteroidBelt(ctx, belt, camera, 25);
     // 25 days @ 100-day period moves the asteroid one-quarter around.
     expect(camera.worldToScreen).toHaveBeenCalledWith(expect.objectContaining({ x: expect.any(Number), y: expect.any(Number) }));
   });

@@ -1,4 +1,5 @@
 import type { Layout } from '../sim/layout';
+import { MOONS } from '../sim/data';
 import type { Snapshot } from '../sim/simulation';
 import type { Camera } from './camera';
 import { drawAsteroidBelt, type AsteroidState } from './asteroidBelt';
@@ -9,6 +10,8 @@ const ORBIT_GUIDE = 'rgba(255, 255, 255, 0.08)';
 const BUBBLE_GUIDE = 'rgba(255, 255, 255, 0.05)';
 const LABEL_COLOR = 'rgba(255, 255, 255, 0.75)';
 const LABEL_FONT = '11px system-ui, sans-serif';
+
+const moonParent = new Map(MOONS.map((m) => [m.name, m.parent]));
 
 export function drawScene(
   ctx: CanvasRenderingContext2D,
@@ -44,8 +47,9 @@ export function drawScene(
   let currentLabelOpacity = 0;
 
   for (const body of snap.bodies) {
-    if (body.kind === 'planet') {
-      const bubbleDiameter = layout.planets[body.name].bubbleRadius * camera.scale * 2;
+    const parentName = body.kind === 'planet' ? body.name : moonParent.get(body.name);
+    if (parentName) {
+      const bubbleDiameter = layout.planets[parentName].bubbleRadius * camera.scale * 2;
       currentMoonOpacity = moonOpacity(bubbleDiameter, viewport);
       currentLabelOpacity = labelOpacity(bubbleDiameter, viewport);
     }

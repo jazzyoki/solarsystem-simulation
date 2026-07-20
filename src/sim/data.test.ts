@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { MOONS, PLANETS } from './data';
+import { ASTEROID_BELT, MOONS, PLANETS } from './data';
+import { computeLayout } from './layout';
 
 const EXPECTED_MOON_COUNTS: Record<string, number> = {
   Mercury: 0,
@@ -54,5 +55,21 @@ describe('data tables', () => {
   it('names are unique across planets and moons', () => {
     const all = [...PLANETS.map((p) => p.name), ...MOONS.map((m) => m.name)];
     expect(new Set(all).size).toBe(all.length);
+  });
+
+  it('ASTEROID_BELT has positive geometry constants', () => {
+    expect(ASTEROID_BELT.count).toBeGreaterThan(0);
+    expect(ASTEROID_BELT.minRadius).toBeGreaterThan(0);
+    expect(ASTEROID_BELT.maxRadius).toBeGreaterThan(0);
+    expect(ASTEROID_BELT.seed).toBeGreaterThan(0);
+  });
+
+  it('ASTEROID_BELT radii sit strictly between Mars and Jupiter bubbles', () => {
+    const layout = computeLayout(PLANETS, MOONS);
+    const { inner, outer } = ASTEROID_BELT.getRadii(layout);
+    const marsOuter = layout.planets.Mars.orbitRadius + layout.planets.Mars.bubbleRadius;
+    const jupiterInner = layout.planets.Jupiter.orbitRadius - layout.planets.Jupiter.bubbleRadius;
+    expect(inner).toBeGreaterThan(marsOuter);
+    expect(outer).toBeLessThan(jupiterInner);
   });
 });
