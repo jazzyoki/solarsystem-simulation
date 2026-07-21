@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatSimDate } from './formatDate';
+import { dateInputToSimDays, formatSimDate } from './formatDate';
 
 describe('formatSimDate', () => {
   it('formats the epoch as 2026-01-01', () => {
@@ -26,5 +26,29 @@ describe('formatSimDate', () => {
 
   it('handles large values', () => {
     expect(formatSimDate(10000)).toBe('2053-05-19');
+  });
+});
+
+describe('dateInputToSimDays', () => {
+  it('maps the epoch date to 0', () => {
+    expect(dateInputToSimDays('2026-01-01')).toBe(0);
+  });
+
+  it('maps the next day to 1', () => {
+    expect(dateInputToSimDays('2026-01-02')).toBe(1);
+  });
+
+  it('handles the 2028 leap day', () => {
+    expect(dateInputToSimDays('2028-02-29')).toBe(789);
+  });
+
+  it('is the inverse of formatSimDate', () => {
+    for (const days of [0, 1, 31, 789, 1096, 10000]) {
+      expect(dateInputToSimDays(formatSimDate(days))).toBe(days);
+    }
+  });
+
+  it('produces negative offsets for dates before the epoch', () => {
+    expect(dateInputToSimDays('2025-12-31')).toBe(-1);
   });
 });

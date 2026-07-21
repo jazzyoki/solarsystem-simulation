@@ -9,3 +9,9 @@ export function formatSimDate(simDays: number): string {
   const day = String(d.getUTCDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
+
+/** Integer day-offset from the epoch for a YYYY-MM-DD date at 00:00 UTC. */
+export function dateInputToSimDays(value: string): number {
+  const [year, month, day] = value.split('-').map(Number);
+  return (Date.UTC(year, month - 1, day) - EPOCH_MS) / MS_PER_DAY;
+}
