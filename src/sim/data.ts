@@ -1,7 +1,10 @@
 import type { Layout } from './layout';
-import type { MoonSpec, PlanetSpec } from './types';
+import type { MoonSpec, PlanetSpec, ScaleMode } from './types';
 
 const DEG_TO_RAD = Math.PI / 180;
+
+/** World units per astronomical unit in to-scale mode. */
+export const AU_TO_WORLD = 150;
 
 export const SUN = { name: 'Sun', bodyRadius: 22, color: '#ffcc33' } as const;
 export const MOON_STYLE = { bodyRadius: 1.5, color: '#bbbbbb' } as const;
@@ -12,10 +15,18 @@ export const ASTEROID_BELT = {
   color: 'rgba(170, 170, 190, 0.45)',
   minRadius: 0.4,
   maxRadius: 1.6,
-  getRadii(layout: Layout) {
+  getRadii(layout: Layout, mode: ScaleMode = 'schematic') {
+    const gap = 10;
+    if (mode === 'toScale') {
+      const mars = PLANETS.find((p) => p.name === 'Mars')!;
+      const jupiter = PLANETS.find((p) => p.name === 'Jupiter')!;
+      return {
+        inner: mars.semiMajorAxisAu * (1 + mars.eccentricity) * AU_TO_WORLD + gap,
+        outer: jupiter.semiMajorAxisAu * (1 - jupiter.eccentricity) * AU_TO_WORLD - gap,
+      };
+    }
     const mars = layout.planets.Mars;
     const jupiter = layout.planets.Jupiter;
-    const gap = 10;
     return {
       inner: mars.orbitRadius + mars.bubbleRadius + gap,
       outer: jupiter.orbitRadius - jupiter.bubbleRadius - gap,
@@ -28,6 +39,9 @@ export const PLANETS: PlanetSpec[] = [
     name: 'Mercury',
     periodDays: 87.9691,
     epochAngleRad: 242.262456669 * DEG_TO_RAD,
+    semiMajorAxisAu: 0.38709927,
+    eccentricity: 0.20563593,
+    perihelionLongitudeRad: 77.45779628 * DEG_TO_RAD,
     bodyRadius: 4,
     color: '#9c8e82',
   },
@@ -35,6 +49,9 @@ export const PLANETS: PlanetSpec[] = [
     name: 'Venus',
     periodDays: 224.701,
     epochAngleRad: 277.021284224 * DEG_TO_RAD,
+    semiMajorAxisAu: 0.72333566,
+    eccentricity: 0.00677672,
+    perihelionLongitudeRad: 131.60246718 * DEG_TO_RAD,
     bodyRadius: 6,
     color: '#e3bb76',
   },
@@ -42,6 +59,9 @@ export const PLANETS: PlanetSpec[] = [
     name: 'Earth',
     periodDays: 365.256,
     epochAngleRad: 100.209656729 * DEG_TO_RAD,
+    semiMajorAxisAu: 1.00000261,
+    eccentricity: 0.01671123,
+    perihelionLongitudeRad: 102.93768193 * DEG_TO_RAD,
     bodyRadius: 6,
     color: '#4d9de0',
   },
@@ -49,6 +69,9 @@ export const PLANETS: PlanetSpec[] = [
     name: 'Mars',
     periodDays: 686.98,
     epochAngleRad: 283.796552295 * DEG_TO_RAD,
+    semiMajorAxisAu: 1.52371034,
+    eccentricity: 0.0933941,
+    perihelionLongitudeRad: 336.05637041 * DEG_TO_RAD,
     bodyRadius: 5,
     color: '#c1440e',
   },
@@ -56,6 +79,9 @@ export const PLANETS: PlanetSpec[] = [
     name: 'Jupiter',
     periodDays: 4332.589,
     epochAngleRad: 108.967359114 * DEG_TO_RAD,
+    semiMajorAxisAu: 5.202887,
+    eccentricity: 0.04838624,
+    perihelionLongitudeRad: 14.72847983 * DEG_TO_RAD,
     bodyRadius: 14,
     color: '#d8a25e',
   },
@@ -63,6 +89,9 @@ export const PLANETS: PlanetSpec[] = [
     name: 'Saturn',
     periodDays: 10759.22,
     epochAngleRad: 1.552905047 * DEG_TO_RAD,
+    semiMajorAxisAu: 9.53667594,
+    eccentricity: 0.05386179,
+    perihelionLongitudeRad: 92.59887831 * DEG_TO_RAD,
     bodyRadius: 12,
     color: '#e0c38b',
   },
@@ -70,6 +99,9 @@ export const PLANETS: PlanetSpec[] = [
     name: 'Uranus',
     periodDays: 30688.5,
     epochAngleRad: 59.539656457 * DEG_TO_RAD,
+    semiMajorAxisAu: 19.18916464,
+    eccentricity: 0.04725744,
+    perihelionLongitudeRad: 170.9542763 * DEG_TO_RAD,
     bodyRadius: 9,
     color: '#7dd3d8',
   },
@@ -77,6 +109,9 @@ export const PLANETS: PlanetSpec[] = [
     name: 'Neptune',
     periodDays: 60182,
     epochAngleRad: 0.995246704 * DEG_TO_RAD,
+    semiMajorAxisAu: 30.06992276,
+    eccentricity: 0.00859048,
+    perihelionLongitudeRad: 44.96476227 * DEG_TO_RAD,
     bodyRadius: 9,
     color: '#5b7fd4',
   },

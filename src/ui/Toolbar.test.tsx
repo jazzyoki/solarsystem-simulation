@@ -6,8 +6,10 @@ function renderToolbar(overrides: Partial<ToolbarProps> = {}) {
   const props: ToolbarProps = {
     multiplier: 1,
     paused: false,
+    mode: 'schematic',
     onSelectSpeed: vi.fn(),
     onTogglePause: vi.fn(),
+    onSelectMode: vi.fn(),
     ...overrides,
   };
   render(<Toolbar {...props} />);
@@ -40,5 +42,25 @@ describe('Toolbar', () => {
     const props = renderToolbar({ paused: true });
     fireEvent.click(screen.getByRole('button', { name: 'Resume' }));
     expect(props.onTogglePause).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the Schematic and To Scale buttons', () => {
+    renderToolbar();
+    expect(screen.getByRole('button', { name: 'Schematic' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'To Scale' })).toBeTruthy();
+  });
+
+  it('marks the active mode', () => {
+    renderToolbar({ mode: 'toScale' });
+    expect(screen.getByRole('button', { name: 'To Scale' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: 'Schematic' }).getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('calls onSelectMode when a mode button is clicked', () => {
+    const props = renderToolbar();
+    fireEvent.click(screen.getByRole('button', { name: 'To Scale' }));
+    expect(props.onSelectMode).toHaveBeenCalledWith('toScale');
+    fireEvent.click(screen.getByRole('button', { name: 'Schematic' }));
+    expect(props.onSelectMode).toHaveBeenCalledWith('schematic');
   });
 });

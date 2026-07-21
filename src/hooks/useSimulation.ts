@@ -7,14 +7,17 @@ import type { SpeedMultiplier } from '../sim/clock';
 import { ASTEROID_BELT } from '../sim/data';
 import { formatSimDate } from '../sim/formatDate';
 import { Simulation } from '../sim/simulation';
+import type { ScaleMode } from '../sim/types';
 
 const DATE_UPDATE_INTERVAL_FRAMES = 15;
 
 export function useSimulation(canvasRef: React.RefObject<HTMLCanvasElement | null>) {
   const [multiplier, setMultiplierState] = useState<SpeedMultiplier>(1);
   const [paused, setPaused] = useState(false);
+  const [mode, setModeState] = useState<ScaleMode>('schematic');
   const [date, setDate] = useState(() => formatSimDate(0));
   const simRef = useRef<Simulation | null>(null);
+  const applyModeRef = useRef<(m: ScaleMode) => void>(() => {});
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -26,10 +29,18 @@ export function useSimulation(canvasRef: React.RefObject<HTMLCanvasElement | nul
     simRef.current = sim;
     const camera = new Camera();
     const pointerInteraction = new PointerInteraction(camera);
-    const asteroids = buildAsteroidBelt(sim.layout, ASTEROID_BELT.seed, ASTEROID_BELT.count);
-    const outermost = Math.max(
-      ...Object.values(sim.layout.planets).map((e) => e.orbitRadius + e.bubbleRadius),
+
+    let currentMode: ScaleMode = 'schematic';
+    let asteroids = buildAsteroidBelt(
+      sim.layout,
+      ASTEROID_BELT.seed,
+      ASTEROID_BELT.count,
+      currentMode,
     );
+    let pendingMode: ScaleMode | null = null;
+    applyModeRef.current = (m: ScaleMode) => {
+      pendingMode = m;
+    };
 
     let width = 0;
     let height = 0;
@@ -42,7 +53,7 @@ export function useSimulation(canvasRef: React.RefObject<HTMLCanvasElement | nul
       canvas.height = Math.round(height * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!fitted && width > 0 && height > 0) {
-        camera.fitToView(outermost, width, height);
+        camera.fitToView(sim.extent(currentMode), width, height);
         fitted = true;
       }
     };
@@ -94,7 +105,27 @@ export function useSimulation(canvasRef: React.RefObject<HTMLCanvasElement | nul
       const dt = (now - lastTime) / 1000;
       lastTime = now;
       sim.advance(dt);
-      drawScene(ctx, sim.snapshot(), sim.layout, camera, width, height, asteroids);
+      if (pendingMode !== null && width > 0 && height > 0) {
+        currentMode = pendingMode;
+        pendingMode = null;
+        asteroids = buildAsteroidBelt(
+          sim.layout,
+          ASTEROID_BELT.seed,
+          ASTEROID_BELT.count,
+          currentMode,
+        );
+        camera.fitToView(sim.extent(currentMode), width, height);
+      }
+      drawScene(
+        ctx,
+        sim.snapshot(currentMode),
+        sim.layout,
+        camera,
+        width,
+        height,
+        asteroids,
+        sim.orbitPaths(currentMode),
+      );
       if (++framesSinceDateUpdate >= DATE_UPDATE_INTERVAL_FRAMES) {
         framesSinceDateUpdate = 0;
         setDate(formatSimDate(sim.clock.simDays));
@@ -126,5 +157,10 @@ export function useSimulation(canvasRef: React.RefObject<HTMLCanvasElement | nul
     setPaused(clock.paused);
   };
 
-  return { multiplier, paused, date, setMultiplier, togglePause };
+  const setMode = (m: ScaleMode) => {
+    applyModeRef.current(m);
+    setModeState(m);
+  };
+
+  return { multiplier, paused, mode, date, setMultiplier, togglePause, setMode };
 }

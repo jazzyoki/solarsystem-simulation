@@ -102,4 +102,52 @@ describe('Simulation', () => {
     const angle = Math.atan2(triton.y - neptune.y, triton.x - neptune.x);
     expect(angle).toBeCloseTo((2 * Math.PI) / -5.8769, 5);
   });
+
+  it('places every planet at its epoch longitude in to-scale mode', () => {
+    const bodies = new Simulation().snapshot('toScale').bodies;
+    for (const [name, deg] of Object.entries(EXPECTED_PLANET_EPOCH_ANGLES_DEG)) {
+      const p = bodies.find((b) => b.name === name)!;
+      expect(normalizedAngle(p.y, p.x), name).toBeCloseTo(deg * DEG_TO_RAD, 6);
+    }
+  });
+
+  it('spreads planets by real distance in to-scale mode', () => {
+    const bodies = new Simulation().snapshot('toScale').bodies;
+    const dist = (n: string) => {
+      const b = bodies.find((x) => x.name === n)!;
+      return Math.hypot(b.x, b.y);
+    };
+    expect(dist('Neptune')).toBeGreaterThan(dist('Uranus'));
+    expect(dist('Uranus')).toBeGreaterThan(dist('Saturn'));
+    expect(dist('Saturn')).toBeGreaterThan(dist('Jupiter'));
+    expect(dist('Jupiter')).toBeGreaterThan(dist('Mars'));
+    expect(dist('Mars')).toBeGreaterThan(dist('Earth'));
+    expect(dist('Earth')).toBeGreaterThan(dist('Mercury'));
+    // Earth's semi-major axis ~ 1 AU maps to ~ AU_TO_WORLD (150) world units.
+    expect(dist('Earth')).toBeGreaterThan(140);
+    expect(dist('Earth')).toBeLessThan(160);
+  });
+
+  it('keeps schematic snapshots identical to the default', () => {
+    const a = new Simulation().snapshot();
+    const b = new Simulation().snapshot('schematic');
+    expect(a.bodies).toEqual(b.bodies);
+  });
+
+  it('produces one ellipse path per planet in to-scale mode', () => {
+    const paths = new Simulation().orbitPaths('toScale');
+    expect(paths).toHaveLength(8);
+    expect(paths.every((p) => p.kind === 'ellipse')).toBe(true);
+  });
+
+  it('produces circular paths in schematic mode', () => {
+    const paths = new Simulation().orbitPaths('schematic');
+    expect(paths).toHaveLength(8);
+    expect(paths.every((p) => p.kind === 'circle')).toBe(true);
+  });
+
+  it('reports a larger extent in to-scale mode than schematic', () => {
+    const sim = new Simulation();
+    expect(sim.extent('toScale')).toBeGreaterThan(sim.extent('schematic'));
+  });
 });

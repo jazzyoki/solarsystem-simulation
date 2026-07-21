@@ -55,6 +55,13 @@ body,
   border-color: #3d5afe;
 }
 
+.toolbar-separator {
+  width: 1px;
+  align-self: stretch;
+  margin: 0 4px;
+  background: #34406e;
+}
+
 .date-display {
   position: absolute;
   top: 12px;
