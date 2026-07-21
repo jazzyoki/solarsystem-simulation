@@ -1,6 +1,7 @@
 import { ASTEROID_BELT } from '../sim/data';
 import type { Layout } from '../sim/layout';
 import { angleAt, orbitalPosition } from '../sim/orbits';
+import type { ScaleMode } from '../sim/types';
 import type { Camera } from './camera';
 
 export interface AsteroidState {
@@ -19,9 +20,14 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-export function buildAsteroidBelt(layout: Layout, seed: number, count: number): AsteroidState[] {
+export function buildAsteroidBelt(
+  layout: Layout,
+  seed: number,
+  count: number,
+  mode: ScaleMode = 'schematic',
+): AsteroidState[] {
   const rand = mulberry32(seed);
-  const { inner, outer } = ASTEROID_BELT.getRadii(layout);
+  const { inner, outer } = ASTEROID_BELT.getRadii(layout, mode);
   const { minRadius, maxRadius } = ASTEROID_BELT;
   const asteroids: AsteroidState[] = [];
 

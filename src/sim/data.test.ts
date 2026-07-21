@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ASTEROID_BELT, MOONS, PLANETS } from './data';
+import { ASTEROID_BELT, AU_TO_WORLD, MOONS, PLANETS } from './data';
 import { computeLayout } from './layout';
 
 const EXPECTED_MOON_COUNTS: Record<string, number> = {
@@ -24,6 +24,39 @@ const EXPECTED_PLANET_EPOCH_ANGLES_DEG: Record<string, number> = {
   Saturn: 1.552905047,
   Uranus: 59.539656457,
   Neptune: 0.995246704,
+};
+
+const EXPECTED_SEMI_MAJOR_AXIS_AU: Record<string, number> = {
+  Mercury: 0.38709927,
+  Venus: 0.72333566,
+  Earth: 1.00000261,
+  Mars: 1.52371034,
+  Jupiter: 5.202887,
+  Saturn: 9.53667594,
+  Uranus: 19.18916464,
+  Neptune: 30.06992276,
+};
+
+const EXPECTED_ECCENTRICITY: Record<string, number> = {
+  Mercury: 0.20563593,
+  Venus: 0.00677672,
+  Earth: 0.01671123,
+  Mars: 0.0933941,
+  Jupiter: 0.04838624,
+  Saturn: 0.05386179,
+  Uranus: 0.04725744,
+  Neptune: 0.00859048,
+};
+
+const EXPECTED_PERIHELION_LONGITUDE_DEG: Record<string, number> = {
+  Mercury: 77.45779628,
+  Venus: 131.60246718,
+  Earth: 102.93768193,
+  Mars: 336.05637041,
+  Jupiter: 14.72847983,
+  Saturn: 92.59887831,
+  Uranus: 170.9542763,
+  Neptune: 44.96476227,
 };
 
 describe('data tables', () => {
@@ -99,5 +132,30 @@ describe('data tables', () => {
     const jupiterInner = layout.planets.Jupiter.orbitRadius - layout.planets.Jupiter.bubbleRadius;
     expect(inner).toBeGreaterThan(marsOuter);
     expect(outer).toBeLessThan(jupiterInner);
+  });
+
+  it('stores real orbital elements for every planet', () => {
+    for (const p of PLANETS) {
+      expect(p.semiMajorAxisAu, p.name).toBeCloseTo(EXPECTED_SEMI_MAJOR_AXIS_AU[p.name], 8);
+      expect(p.eccentricity, p.name).toBeCloseTo(EXPECTED_ECCENTRICITY[p.name], 8);
+      expect(p.perihelionLongitudeRad, p.name).toBeCloseTo(
+        EXPECTED_PERIHELION_LONGITUDE_DEG[p.name] * DEG_TO_RAD,
+        10,
+      );
+    }
+  });
+
+  it('exposes a positive AU-to-world scale', () => {
+    expect(AU_TO_WORLD).toBeGreaterThan(0);
+  });
+
+  it('places the to-scale asteroid belt between the real Mars and Jupiter orbits', () => {
+    const layout = computeLayout(PLANETS, MOONS);
+    const { inner, outer } = ASTEROID_BELT.getRadii(layout, 'toScale');
+    const mars = PLANETS.find((p) => p.name === 'Mars')!;
+    const jupiter = PLANETS.find((p) => p.name === 'Jupiter')!;
+    expect(inner).toBeGreaterThan(mars.semiMajorAxisAu * (1 + mars.eccentricity) * AU_TO_WORLD);
+    expect(outer).toBeLessThan(jupiter.semiMajorAxisAu * (1 - jupiter.eccentricity) * AU_TO_WORLD);
+    expect(outer).toBeGreaterThan(inner);
   });
 });
