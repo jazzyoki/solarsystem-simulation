@@ -5,7 +5,7 @@ import { Toolbar } from './ui/Toolbar';
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const { multiplier, paused, mode, date, setMultiplier, togglePause, setMode } =
+  const { multiplier, paused, mode, date, setMultiplier, togglePause, setMode, setDateFromInput } =
     useSimulation(canvasRef);
 
   return (
@@ -19,7 +19,7 @@ export default function App() {
         onTogglePause={togglePause}
         onSelectMode={setMode}
       />
-      <DateDisplay date={date} />
+      <DateDisplay date={date} onSelectDate={setDateFromInput} />
     </div>
   );
 }

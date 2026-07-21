@@ -5,7 +5,7 @@ import { drawScene } from '../render/drawScene';
 import { PointerInteraction } from './pointerInteraction';
 import type { SpeedMultiplier } from '../sim/clock';
 import { ASTEROID_BELT } from '../sim/data';
-import { formatSimDate } from '../sim/formatDate';
+import { dateInputToSimDays, formatSimDate } from '../sim/formatDate';
 import { Simulation } from '../sim/simulation';
 import type { ScaleMode } from '../sim/types';
 
@@ -162,5 +162,11 @@ export function useSimulation(canvasRef: React.RefObject<HTMLCanvasElement | nul
     setModeState(m);
   };
 
-  return { multiplier, paused, mode, date, setMultiplier, togglePause, setMode };
+  const setDateFromInput = (dateStr: string) => {
+    const simDays = dateInputToSimDays(dateStr);
+    simRef.current?.clock.setSimDays(simDays);
+    setDate(dateStr);
+  };
+
+  return { multiplier, paused, mode, date, setMultiplier, togglePause, setMode, setDateFromInput };
 }
