@@ -64,7 +64,7 @@ export function useSimulation(canvasRef: React.RefObject<HTMLCanvasElement | nul
     };
 
     const onPointerDown = (e: PointerEvent) => {
-      if (e.button !== 0) return;
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
       pointerInteraction.pointerDown(e.pointerId, toCanvasPoint(e));
       canvas.setPointerCapture(e.pointerId);
     };
