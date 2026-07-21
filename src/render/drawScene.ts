@@ -1,6 +1,6 @@
 import type { Layout } from '../sim/layout';
 import { MOONS } from '../sim/data';
-import type { Snapshot } from '../sim/simulation';
+import type { OrbitPath, Snapshot } from '../sim/simulation';
 import type { Camera } from './camera';
 import { drawAsteroidBelt, type AsteroidState } from './asteroidBelt';
 import { labelOpacity, moonOpacity, type ViewportSize } from './visibility';
@@ -21,6 +21,7 @@ export function drawScene(
   viewportW: number,
   viewportH: number,
   asteroids: AsteroidState[] = [],
+  orbitPaths: OrbitPath[] = [],
 ): void {
   ctx.fillStyle = BACKGROUND;
   ctx.fillRect(0, 0, viewportW, viewportH);
@@ -28,13 +29,26 @@ export function drawScene(
   const origin = camera.worldToScreen({ x: 0, y: 0 });
   const viewport: ViewportSize = { width: viewportW, height: viewportH };
 
-  // Planet orbit guides (circles around the sun).
+  // Orbit guides: circles (schematic) or rotated ellipses (to-scale).
   ctx.strokeStyle = ORBIT_GUIDE;
   ctx.lineWidth = 1;
-  for (const body of snap.bodies) {
-    if (body.kind !== 'planet') continue;
+  for (const path of orbitPaths) {
     ctx.beginPath();
-    ctx.arc(origin.x, origin.y, layout.planets[body.name].orbitRadius * camera.scale, 0, Math.PI * 2);
+    if (path.kind === 'circle') {
+      ctx.arc(origin.x, origin.y, path.radius * camera.scale, 0, Math.PI * 2);
+    } else {
+      const center = camera.worldToScreen({ x: path.centerX, y: path.centerY });
+      // World angles are CCW (y-up); the camera flips y, so screen rotation = -rotationRad.
+      ctx.ellipse(
+        center.x,
+        center.y,
+        path.semiMajorAxis * camera.scale,
+        path.semiMinorAxis * camera.scale,
+        -path.rotationRad,
+        0,
+        Math.PI * 2,
+      );
+    }
     ctx.stroke();
   }
 

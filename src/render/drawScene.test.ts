@@ -16,6 +16,7 @@ function createMockCtx(): MockCtx {
     fillRect: vi.fn(),
     beginPath: vi.fn(),
     arc: vi.fn(),
+    ellipse: vi.fn(),
     moveTo: vi.fn(),
     fill: vi.fn(),
     stroke: vi.fn(),
@@ -51,7 +52,7 @@ describe('drawScene', () => {
     camera.fitToView(1025, 800, 600);
     const ctx = createMockCtx();
 
-    drawScene(ctx, sim.snapshot(), sim.layout, camera, 800, 600);
+    drawScene(ctx, sim.snapshot(), sim.layout, camera, 800, 600, [], sim.orbitPaths());
 
     expect(ctx.fillRect).toHaveBeenCalledTimes(1);
     // 9 bodies (sun + 8 planets) + 1 sun glow + 8 planet orbit guides + 6 moon bubble guides
@@ -70,7 +71,7 @@ describe('drawScene', () => {
     camera.scale *= 8;
     const ctx = createMockCtx();
 
-    drawScene(ctx, sim.snapshot(), sim.layout, camera, 800, 600);
+    drawScene(ctx, sim.snapshot(), sim.layout, camera, 800, 600, [], sim.orbitPaths());
 
     // 107 bodies + 1 sun glow + 8 orbit guides + 6 moon bubble guides.
     expect(ctx.arc).toHaveBeenCalledTimes(122);
@@ -122,8 +123,31 @@ describe('drawScene', () => {
       periodDays: 1000,
     }));
 
-    drawScene(ctx, sim.snapshot(), sim.layout, camera, 800, 600, belt);
+    drawScene(ctx, sim.snapshot(), sim.layout, camera, 800, 600, belt, sim.orbitPaths());
 
     expect(ctx.arc).toHaveBeenCalledTimes(522); // 122 + 400 belt asteroids
+  });
+
+  it('draws rotated ellipse guides in to-scale mode', () => {
+    const sim = new Simulation();
+    const camera = new Camera();
+    camera.fitToView(sim.extent('toScale'), 800, 600);
+    const ctx = createMockCtx();
+
+    drawScene(
+      ctx,
+      sim.snapshot('toScale'),
+      sim.layout,
+      camera,
+      800,
+      600,
+      [],
+      sim.orbitPaths('toScale'),
+    );
+
+    // One ellipse per planet; no circular orbit guides.
+    expect(ctx.ellipse).toHaveBeenCalledTimes(8);
+    // 9 bodies (sun + 8 planets) + 1 sun glow + 6 moon bubble guides, no orbit circles.
+    expect(ctx.arc).toHaveBeenCalledTimes(16);
   });
 });
