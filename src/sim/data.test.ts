@@ -13,6 +13,19 @@ const EXPECTED_MOON_COUNTS: Record<string, number> = {
   Neptune: 16,
 };
 
+const DEG_TO_RAD = Math.PI / 180;
+
+const EXPECTED_PLANET_EPOCH_ANGLES_DEG: Record<string, number> = {
+  Mercury: 242.262456669,
+  Venus: 277.021284224,
+  Earth: 100.209656729,
+  Mars: 283.796552295,
+  Jupiter: 108.967359114,
+  Saturn: 1.552905047,
+  Uranus: 59.539656457,
+  Neptune: 0.995246704,
+};
+
 describe('data tables', () => {
   it('has 8 planets in solar order', () => {
     expect(PLANETS.map((p) => p.name)).toEqual([
@@ -50,6 +63,21 @@ describe('data tables', () => {
   it('all periods are non-zero', () => {
     for (const p of PLANETS) expect(p.periodDays, p.name).not.toBe(0);
     for (const m of MOONS) expect(m.periodDays, m.name).not.toBe(0);
+  });
+
+  it('stores the JPL epoch angle for every planet', () => {
+    for (const planet of PLANETS) {
+      expect(planet.epochAngleRad, planet.name).toBeCloseTo(
+        EXPECTED_PLANET_EPOCH_ANGLES_DEG[planet.name] * DEG_TO_RAD,
+        10,
+      );
+    }
+  });
+
+  it("calibrates only Earth's Moon", () => {
+    const calibratedMoons = MOONS.filter((moon) => moon.epochAngleRad !== undefined);
+    expect(calibratedMoons.map((moon) => moon.name)).toEqual(['Moon']);
+    expect(calibratedMoons[0].epochAngleRad).toBeCloseTo(66.351233998 * DEG_TO_RAD, 10);
   });
 
   it('names are unique across planets and moons', () => {
