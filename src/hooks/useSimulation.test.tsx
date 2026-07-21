@@ -1,6 +1,7 @@
 import { act, render } from '@testing-library/react';
 import { useRef } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { SimClock } from '../sim/clock';
 import { Camera } from '../render/camera';
 import { useSimulation } from './useSimulation';
 
@@ -139,5 +140,14 @@ describe('useSimulation pointer input', () => {
 
     expect(hookState.date).toBe('2026-07-21');
     expect(hookState.paused).toBe(true);
+  });
+
+  it('seeds clock to today at startup', () => {
+    const setSimDaysSpy = vi.spyOn(SimClock.prototype, 'setSimDays');
+    vi.spyOn(Date, 'now').mockReturnValue(Date.UTC(2026, 6, 21, 12, 0, 0));
+
+    render(<TestSimulation />);
+
+    expect(setSimDaysSpy).toHaveBeenCalledWith(201);
   });
 });
