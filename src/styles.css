@@ -71,4 +71,23 @@ body,
   background: rgba(27, 35, 64, 0.8);
   padding: 6px 10px;
   border-radius: 4px;
+  border: none;
+  cursor: pointer;
+}
+
+.date-display:hover {
+  background: rgba(38, 48, 90, 0.9);
+}
+
+.date-input {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  color: #cfd8ff;
+  font: 14px/1.2 ui-monospace, monospace;
+  background: #1b2340;
+  border: 1px solid #34406e;
+  border-radius: 4px;
+  padding: 5px 9px;
+  color-scheme: dark;
 }

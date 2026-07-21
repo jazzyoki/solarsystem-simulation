@@ -162,5 +162,14 @@ export function useSimulation(canvasRef: React.RefObject<HTMLCanvasElement | nul
     setModeState(m);
   };
 
-  return { multiplier, paused, mode, date, setMultiplier, togglePause, setMode };
+  const seekToDate = (simDays: number) => {
+    const clock = simRef.current?.clock;
+    if (!clock) return;
+    clock.setSimDays(simDays);
+    clock.setPaused(true);
+    setPaused(true);
+    setDate(formatSimDate(simDays));
+  };
+
+  return { multiplier, paused, mode, date, setMultiplier, togglePause, setMode, seekToDate };
 }
