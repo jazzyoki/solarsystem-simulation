@@ -104,4 +104,40 @@ describe('useSimulation pointer input', () => {
     expect(hookState.paused).toBe(true);
     expect(hookState.date).toBe('2028-02-29');
   });
+
+  it('starts on today\'s UTC date and running', () => {
+    vi.spyOn(Date, 'now').mockReturnValue(Date.UTC(2026, 6, 21, 12, 0, 0));
+    let hookState: any;
+
+    function TestStartup() {
+      const canvasRef = useRef<HTMLCanvasElement | null>(null);
+      hookState = useSimulation(canvasRef);
+      return <canvas ref={canvasRef} />;
+    }
+
+    render(<TestStartup />);
+
+    expect(hookState.date).toBe('2026-07-21');
+    expect(hookState.paused).toBe(false);
+  });
+
+  it('goToToday seeks to today and pauses', () => {
+    vi.spyOn(Date, 'now').mockReturnValue(Date.UTC(2026, 6, 21, 12, 0, 0));
+    let hookState: any;
+
+    function TestToday() {
+      const canvasRef = useRef<HTMLCanvasElement | null>(null);
+      hookState = useSimulation(canvasRef);
+      return <canvas ref={canvasRef} />;
+    }
+
+    render(<TestToday />);
+
+    act(() => {
+      hookState.goToToday();
+    });
+
+    expect(hookState.date).toBe('2026-07-21');
+    expect(hookState.paused).toBe(true);
+  });
 });
