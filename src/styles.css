@@ -62,10 +62,16 @@ body,
   background: #34406e;
 }
 
-.date-display {
+.date-controls {
   position: absolute;
   top: 12px;
   right: 12px;
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.date-display {
   color: #cfd8ff;
   font: 14px/1.2 ui-monospace, monospace;
   background: rgba(27, 35, 64, 0.8);
@@ -80,9 +86,6 @@ body,
 }
 
 .date-input {
-  position: absolute;
-  top: 12px;
-  right: 12px;
   color: #cfd8ff;
   font: 14px/1.2 ui-monospace, monospace;
   background: #1b2340;
@@ -90,4 +93,18 @@ body,
   border-radius: 4px;
   padding: 5px 9px;
   color-scheme: dark;
+}
+
+.today-button {
+  background: #1b2340;
+  color: #cfd8ff;
+  border: 1px solid #34406e;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font: 13px system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.today-button:hover {
+  background: #26305a;
 }
