@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 import { useRef } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Camera } from '../render/camera';
@@ -84,5 +84,24 @@ describe('useSimulation pointer input', () => {
     );
 
     expect(panBy).toHaveBeenCalledWith(30, 20);
+  });
+
+  it('seekToDate pauses simulation and updates date', () => {
+    let hookState: any;
+
+    function TestSeekToDate() {
+      const canvasRef = useRef<HTMLCanvasElement | null>(null);
+      hookState = useSimulation(canvasRef);
+      return <canvas ref={canvasRef} />;
+    }
+
+    render(<TestSeekToDate />);
+
+    act(() => {
+      hookState.seekToDate(789);
+    });
+
+    expect(hookState.paused).toBe(true);
+    expect(hookState.date).toBe('2028-02-29');
   });
 });

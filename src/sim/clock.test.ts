@@ -46,4 +46,12 @@ describe('SimClock', () => {
     c.advance(10);
     expect(c.simDays).toBeCloseTo(0.25, 10);
   });
+
+  it('jumps to an explicit simDays value', () => {
+    const c = new SimClock();
+    c.setSimDays(789);
+    expect(c.simDays).toBe(789);
+    c.setSimDays(-1);
+    expect(c.simDays).toBe(-1);
+  });
 });
