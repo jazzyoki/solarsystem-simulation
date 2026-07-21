@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dateInputToSimDays, formatSimDate } from './formatDate';
+import { dateInputToSimDays, formatSimDate, timestampToSimDays } from './formatDate';
 
 describe('formatSimDate', () => {
   it('formats the epoch as 2026-01-01', () => {
@@ -50,5 +50,25 @@ describe('dateInputToSimDays', () => {
 
   it('produces negative offsets for dates before the epoch', () => {
     expect(dateInputToSimDays('2025-12-31')).toBe(-1);
+  });
+});
+
+describe('timestampToSimDays', () => {
+  it('maps the epoch instant to 0', () => {
+    expect(timestampToSimDays(Date.UTC(2026, 0, 1, 0, 0, 0))).toBe(0);
+  });
+
+  it('floors to the UTC day (later time same day still maps to that day)', () => {
+    expect(timestampToSimDays(Date.UTC(2026, 0, 1, 23, 59, 59))).toBe(0);
+  });
+
+  it('maps a known day to its offset', () => {
+    // 2026-07-21 is 201 days after 2026-01-01.
+    expect(timestampToSimDays(Date.UTC(2026, 6, 21, 12, 0, 0))).toBe(201);
+    expect(formatSimDate(201)).toBe('2026-07-21');
+  });
+
+  it('produces a negative offset for an instant before the epoch', () => {
+    expect(timestampToSimDays(Date.UTC(2025, 11, 31, 12, 0, 0))).toBe(-1);
   });
 });

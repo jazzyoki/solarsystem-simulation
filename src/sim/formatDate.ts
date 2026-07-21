@@ -15,3 +15,8 @@ export function dateInputToSimDays(value: string): number {
   const [year, month, day] = value.split('-').map(Number);
   return (Date.UTC(year, month - 1, day) - EPOCH_MS) / MS_PER_DAY;
 }
+
+/** Integer day-offset from the epoch for the UTC date containing `nowMs` (00:00 UTC). */
+export function timestampToSimDays(nowMs: number): number {
+  return Math.floor((nowMs - EPOCH_MS) / MS_PER_DAY);
+}
