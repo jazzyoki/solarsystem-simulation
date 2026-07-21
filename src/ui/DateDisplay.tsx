@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 
 interface DateDisplayProps {
   date: string;
-  onSelectDate: (value: string) => void;
+  onSelectDate?: (value: string) => void;
 }
 
 export function DateDisplay({ date, onSelectDate }: DateDisplayProps) {
@@ -46,7 +46,7 @@ export function DateDisplay({ date, onSelectDate }: DateDisplayProps) {
       onChange={(e) => {
         const value = e.target.value;
         if (!value) return;
-        onSelectDate(value);
+        onSelectDate?.(value);
         setEditing(false);
       }}
       onBlur={() => setEditing(false)}
