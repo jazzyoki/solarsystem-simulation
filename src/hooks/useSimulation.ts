@@ -5,7 +5,7 @@ import { drawScene } from '../render/drawScene';
 import { PointerInteraction } from './pointerInteraction';
 import type { SpeedMultiplier } from '../sim/clock';
 import { ASTEROID_BELT } from '../sim/data';
-import { formatSimDate } from '../sim/formatDate';
+import { formatSimDate, timestampToSimDays } from '../sim/formatDate';
 import { Simulation } from '../sim/simulation';
 import type { ScaleMode } from '../sim/types';
 
@@ -15,7 +15,7 @@ export function useSimulation(canvasRef: React.RefObject<HTMLCanvasElement | nul
   const [multiplier, setMultiplierState] = useState<SpeedMultiplier>(1);
   const [paused, setPaused] = useState(false);
   const [mode, setModeState] = useState<ScaleMode>('schematic');
-  const [date, setDate] = useState(() => formatSimDate(0));
+  const [date, setDate] = useState(() => formatSimDate(timestampToSimDays(Date.now())));
   const simRef = useRef<Simulation | null>(null);
   const applyModeRef = useRef<(m: ScaleMode) => void>(() => {});
 
@@ -26,6 +26,7 @@ export function useSimulation(canvasRef: React.RefObject<HTMLCanvasElement | nul
     if (!ctx) return;
 
     const sim = new Simulation();
+    sim.clock.setSimDays(timestampToSimDays(Date.now()));
     simRef.current = sim;
     const camera = new Camera();
     const pointerInteraction = new PointerInteraction(camera);
@@ -171,5 +172,9 @@ export function useSimulation(canvasRef: React.RefObject<HTMLCanvasElement | nul
     setDate(formatSimDate(simDays));
   };
 
-  return { multiplier, paused, mode, date, setMultiplier, togglePause, setMode, seekToDate };
+  const goToToday = () => {
+    seekToDate(timestampToSimDays(Date.now()));
+  };
+
+  return { multiplier, paused, mode, date, setMultiplier, togglePause, setMode, seekToDate, goToToday };
 }

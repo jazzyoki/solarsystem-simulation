@@ -9,12 +9,12 @@ function openEditor() {
 
 describe('DateDisplay', () => {
   it('renders the date on a button', () => {
-    render(<DateDisplay date="2026-07-21" onSelectDate={vi.fn()} />);
+    render(<DateDisplay date="2026-07-21" onSelectDate={vi.fn()} onToday={vi.fn()} />);
     expect(screen.getByRole('button', { name: /simulation date/i }).textContent).toBe('2026-07-21');
   });
 
   it('reveals a date input seeded with the current date when clicked', () => {
-    render(<DateDisplay date="2026-07-21" onSelectDate={vi.fn()} />);
+    render(<DateDisplay date="2026-07-21" onSelectDate={vi.fn()} onToday={vi.fn()} />);
     const input = openEditor();
     expect(input).toBeTruthy();
     expect(input.value).toBe('2026-07-21');
@@ -22,7 +22,7 @@ describe('DateDisplay', () => {
 
   it('calls onSelectDate with the picked value and returns to the button', () => {
     const onSelectDate = vi.fn();
-    render(<DateDisplay date="2026-07-21" onSelectDate={onSelectDate} />);
+    render(<DateDisplay date="2026-07-21" onSelectDate={onSelectDate} onToday={vi.fn()} />);
     const input = openEditor();
     fireEvent.change(input, { target: { value: '2027-03-15' } });
     expect(onSelectDate).toHaveBeenCalledWith('2027-03-15');
@@ -32,7 +32,7 @@ describe('DateDisplay', () => {
 
   it('ignores an empty value', () => {
     const onSelectDate = vi.fn();
-    render(<DateDisplay date="2026-07-21" onSelectDate={onSelectDate} />);
+    render(<DateDisplay date="2026-07-21" onSelectDate={onSelectDate} onToday={vi.fn()} />);
     const input = openEditor();
     fireEvent.change(input, { target: { value: '' } });
     expect(onSelectDate).not.toHaveBeenCalled();
@@ -40,7 +40,7 @@ describe('DateDisplay', () => {
 
   it('reverts on Escape without selecting', () => {
     const onSelectDate = vi.fn();
-    render(<DateDisplay date="2026-07-21" onSelectDate={onSelectDate} />);
+    render(<DateDisplay date="2026-07-21" onSelectDate={onSelectDate} onToday={vi.fn()} />);
     const input = openEditor();
     fireEvent.keyDown(input, { key: 'Escape' });
     expect(onSelectDate).not.toHaveBeenCalled();
@@ -49,10 +49,17 @@ describe('DateDisplay', () => {
 
   it('reverts on blur without selecting', () => {
     const onSelectDate = vi.fn();
-    render(<DateDisplay date="2026-07-21" onSelectDate={onSelectDate} />);
+    render(<DateDisplay date="2026-07-21" onSelectDate={onSelectDate} onToday={vi.fn()} />);
     const input = openEditor();
     fireEvent.blur(input);
     expect(onSelectDate).not.toHaveBeenCalled();
     expect(screen.getByRole('button', { name: /simulation date/i })).toBeTruthy();
+  });
+
+  it('renders a Today button that calls onToday when clicked', () => {
+    const onToday = vi.fn();
+    render(<DateDisplay date="2026-07-21" onSelectDate={vi.fn()} onToday={onToday} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Today' }));
+    expect(onToday).toHaveBeenCalledTimes(1);
   });
 });
