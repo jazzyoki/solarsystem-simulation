@@ -22,4 +22,8 @@ export class SimClock {
   setPaused(p: boolean): void {
     this.paused = p;
   }
+
+  setSimDays(days: number): void {
+    this.simDays = days;
+  }
 }
