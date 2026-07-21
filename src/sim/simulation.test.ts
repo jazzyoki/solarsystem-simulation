@@ -11,6 +11,24 @@ function advanceDays(sim: Simulation, days: number): void {
   }
 }
 
+const DEG_TO_RAD = Math.PI / 180;
+
+const EXPECTED_PLANET_EPOCH_ANGLES_DEG: Record<string, number> = {
+  Mercury: 242.262456669,
+  Venus: 277.021284224,
+  Earth: 100.209656729,
+  Mars: 283.796552295,
+  Jupiter: 108.967359114,
+  Saturn: 1.552905047,
+  Uranus: 59.539656457,
+  Neptune: 0.995246704,
+};
+
+function normalizedAngle(y: number, x: number): number {
+  const angle = Math.atan2(y, x);
+  return angle < 0 ? angle + 2 * Math.PI : angle;
+}
+
 describe('Simulation', () => {
   it('snapshots 107 bodies (1 sun + 8 planets + 98 moons)', () => {
     expect(new Simulation().snapshot().bodies).toHaveLength(107);
@@ -21,20 +39,49 @@ describe('Simulation', () => {
     expect(sun).toMatchObject({ name: 'Sun', x: 0, y: 0, kind: 'sun' });
   });
 
-  it('starts all bodies aligned on the +x axis at day 0', () => {
-    for (const b of new Simulation().snapshot().bodies) {
-      expect(b.y, b.name).toBeCloseTo(0, 10);
-      expect(b.x, b.name).toBeGreaterThanOrEqual(0);
+  it('starts every planet at its JPL epoch longitude', () => {
+    const bodies = new Simulation().snapshot().bodies;
+
+    for (const [name, expectedDegrees] of Object.entries(EXPECTED_PLANET_EPOCH_ANGLES_DEG)) {
+      const planet = bodies.find((body) => body.name === name)!;
+      expect(normalizedAngle(planet.y, planet.x), name).toBeCloseTo(
+        expectedDegrees * DEG_TO_RAD,
+        9,
+      );
     }
   });
 
-  it('Earth completes exactly one revolution per Earth year', () => {
+  it("starts Earth's Moon at its JPL geocentric epoch longitude", () => {
+    const bodies = new Simulation().snapshot().bodies;
+    const earth = bodies.find((body) => body.name === 'Earth')!;
+    const moon = bodies.find((body) => body.name === 'Moon')!;
+
+    expect(normalizedAngle(moon.y - earth.y, moon.x - earth.x)).toBeCloseTo(
+      66.351233998 * DEG_TO_RAD,
+      9,
+    );
+  });
+
+  it('keeps uncalibrated moons at zero relative phase', () => {
+    const bodies = new Simulation().snapshot().bodies;
+    const mars = bodies.find((body) => body.name === 'Mars')!;
+    const phobos = bodies.find((body) => body.name === 'Phobos')!;
+
+    expect(phobos.y - mars.y).toBeCloseTo(0, 10);
+    expect(phobos.x - mars.x).toBeGreaterThan(0);
+  });
+
+  it('returns Earth to its epoch position after one Earth year', () => {
     const sim = new Simulation();
+    const initialEarth = sim.snapshot().bodies.find((body) => body.name === 'Earth')!;
+
     advanceDays(sim, 365.256);
-    const earth = sim.snapshot().bodies.find((b) => b.name === 'Earth')!;
-    const r = sim.layout.planets.Earth.orbitRadius;
-    expect(Math.hypot(earth.x, earth.y)).toBeCloseTo(r, 5);
-    expect(earth.y).toBeCloseTo(0, 5);
+    const earth = sim.snapshot().bodies.find((body) => body.name === 'Earth')!;
+    const radius = sim.layout.planets.Earth.orbitRadius;
+
+    expect(Math.hypot(earth.x, earth.y)).toBeCloseTo(radius, 5);
+    expect(earth.x).toBeCloseTo(initialEarth.x, 5);
+    expect(earth.y).toBeCloseTo(initialEarth.y, 5);
   });
 
   it("keeps Earth's Moon on its ring around the moving Earth", () => {

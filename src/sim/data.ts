@@ -1,6 +1,8 @@
 import type { Layout } from './layout';
 import type { MoonSpec, PlanetSpec } from './types';
 
+const DEG_TO_RAD = Math.PI / 180;
+
 export const SUN = { name: 'Sun', bodyRadius: 22, color: '#ffcc33' } as const;
 export const MOON_STYLE = { bodyRadius: 1.5, color: '#bbbbbb' } as const;
 
@@ -22,19 +24,67 @@ export const ASTEROID_BELT = {
 } as const;
 
 export const PLANETS: PlanetSpec[] = [
-  { name: 'Mercury', periodDays: 87.9691, bodyRadius: 4, color: '#9c8e82' },
-  { name: 'Venus', periodDays: 224.701, bodyRadius: 6, color: '#e3bb76' },
-  { name: 'Earth', periodDays: 365.256, bodyRadius: 6, color: '#4d9de0' },
-  { name: 'Mars', periodDays: 686.98, bodyRadius: 5, color: '#c1440e' },
-  { name: 'Jupiter', periodDays: 4332.589, bodyRadius: 14, color: '#d8a25e' },
-  { name: 'Saturn', periodDays: 10759.22, bodyRadius: 12, color: '#e0c38b' },
-  { name: 'Uranus', periodDays: 30688.5, bodyRadius: 9, color: '#7dd3d8' },
-  { name: 'Neptune', periodDays: 60182, bodyRadius: 9, color: '#5b7fd4' },
+  {
+    name: 'Mercury',
+    periodDays: 87.9691,
+    epochAngleRad: 242.262456669 * DEG_TO_RAD,
+    bodyRadius: 4,
+    color: '#9c8e82',
+  },
+  {
+    name: 'Venus',
+    periodDays: 224.701,
+    epochAngleRad: 277.021284224 * DEG_TO_RAD,
+    bodyRadius: 6,
+    color: '#e3bb76',
+  },
+  {
+    name: 'Earth',
+    periodDays: 365.256,
+    epochAngleRad: 100.209656729 * DEG_TO_RAD,
+    bodyRadius: 6,
+    color: '#4d9de0',
+  },
+  {
+    name: 'Mars',
+    periodDays: 686.98,
+    epochAngleRad: 283.796552295 * DEG_TO_RAD,
+    bodyRadius: 5,
+    color: '#c1440e',
+  },
+  {
+    name: 'Jupiter',
+    periodDays: 4332.589,
+    epochAngleRad: 108.967359114 * DEG_TO_RAD,
+    bodyRadius: 14,
+    color: '#d8a25e',
+  },
+  {
+    name: 'Saturn',
+    periodDays: 10759.22,
+    epochAngleRad: 1.552905047 * DEG_TO_RAD,
+    bodyRadius: 12,
+    color: '#e0c38b',
+  },
+  {
+    name: 'Uranus',
+    periodDays: 30688.5,
+    epochAngleRad: 59.539656457 * DEG_TO_RAD,
+    bodyRadius: 9,
+    color: '#7dd3d8',
+  },
+  {
+    name: 'Neptune',
+    periodDays: 60182,
+    epochAngleRad: 0.995246704 * DEG_TO_RAD,
+    bodyRadius: 9,
+    color: '#5b7fd4',
+  },
 ];
 
 export const MOONS: MoonSpec[] = [
   // Earth (1)
-  { name: 'Moon', parent: 'Earth', periodDays: 27.3217 },
+  { name: 'Moon', parent: 'Earth', periodDays: 27.3217, epochAngleRad: 66.351233998 * DEG_TO_RAD },
   // Mars (2)
   { name: 'Phobos', parent: 'Mars', periodDays: 0.31891 },
   { name: 'Deimos', parent: 'Mars', periodDays: 1.26244 },

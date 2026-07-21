@@ -6,6 +6,14 @@ describe('angleAt', () => {
     expect(angleAt(100, 0)).toBe(0);
   });
 
+  it('returns the epoch phase at day 0', () => {
+    expect(angleAt(100, 0, 0.75)).toBeCloseTo(0.75, 10);
+  });
+
+  it('adds elapsed orbital motion to the epoch phase', () => {
+    expect(angleAt(100, 25, 0.75)).toBeCloseTo(0.75 + Math.PI / 2, 10);
+  });
+
   it('returns π/2 at a quarter period', () => {
     expect(angleAt(100, 25)).toBeCloseTo(Math.PI / 2, 10);
   });
