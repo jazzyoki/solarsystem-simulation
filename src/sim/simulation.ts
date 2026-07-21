@@ -33,7 +33,12 @@ export class Simulation {
 
     for (const planet of PLANETS) {
       const { orbitRadius } = this.layout.planets[planet.name];
-      const pos = orbitalPosition(0, 0, orbitRadius, angleAt(planet.periodDays, simDays));
+      const pos = orbitalPosition(
+        0,
+        0,
+        orbitRadius,
+        angleAt(planet.periodDays, simDays, planet.epochAngleRad),
+      );
       bodies.push({
         name: planet.name,
         ...pos,
@@ -45,7 +50,12 @@ export class Simulation {
       for (const moon of MOONS) {
         if (moon.parent !== planet.name) continue;
         const ring = this.layout.moons[moon.name];
-        const mpos = orbitalPosition(pos.x, pos.y, ring, angleAt(moon.periodDays, simDays));
+        const mpos = orbitalPosition(
+          pos.x,
+          pos.y,
+          ring,
+          angleAt(moon.periodDays, simDays, moon.epochAngleRad),
+        );
         bodies.push({
           name: moon.name,
           ...mpos,
