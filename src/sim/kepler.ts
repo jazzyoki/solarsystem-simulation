@@ -1,15 +1,16 @@
 const KEPLER_TOLERANCE = 1e-12;
-const KEPLER_MAX_ITERATIONS = 50;
+const KEPLER_MAX_ITERATIONS = 100;
 
 /**
  * Solve Kepler's equation `M = E - e*sin(E)` for the eccentric anomaly `E`
- * using Newton-Raphson. Valid for the planetary eccentricities used here
- * (all well below 0.8).
+ * using Newton-Raphson. A second-order starting value keeps it convergent for
+ * the high eccentricities of comets (up to ~0.9999), as well as planets.
  */
 export function eccentricAnomalyFromMean(meanAnomalyRad: number, eccentricity: number): number {
-  let E = meanAnomalyRad;
+  const M = meanAnomalyRad;
+  let E = M + eccentricity * Math.sin(M) * (1 + eccentricity * Math.cos(M));
   for (let i = 0; i < KEPLER_MAX_ITERATIONS; i++) {
-    const delta = (E - eccentricity * Math.sin(E) - meanAnomalyRad) /
+    const delta = (E - eccentricity * Math.sin(E) - M) /
       (1 - eccentricity * Math.cos(E));
     E -= delta;
     if (Math.abs(delta) < KEPLER_TOLERANCE) break;

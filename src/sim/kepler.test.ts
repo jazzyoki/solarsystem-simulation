@@ -19,6 +19,15 @@ describe('eccentricAnomalyFromMean', () => {
   it('maps M = pi to E = pi', () => {
     expect(eccentricAnomalyFromMean(Math.PI, 0.3)).toBeCloseTo(Math.PI, 10);
   });
+
+  it('solves Kepler equation at high (cometary) eccentricity', () => {
+    for (const e of [0.968, 0.995, 0.9999]) {
+      for (const M of [0.1, 1.0, 2.5, 3.5, 5.0]) {
+        const E = eccentricAnomalyFromMean(M, e);
+        expect(E - e * Math.sin(E)).toBeCloseTo(M, 9);
+      }
+    }
+  });
 });
 
 describe('true/mean anomaly conversions', () => {
