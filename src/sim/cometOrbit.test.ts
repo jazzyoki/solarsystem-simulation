@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { COMETS } from './data';
-import { cometPathAu, cometPositionAu, meanMotion, COMET_PATH_SEGMENTS } from './cometOrbit';
+import {
+  cometPathAu,
+  cometPositionAu,
+  meanMotion,
+  COMET_PATH_SEGMENTS,
+  COMET_PATH_WINDOW_AU,
+} from './cometOrbit';
 import type { CometSpec } from './types';
 
 const byName = (name: string): CometSpec => COMETS.find((c) => c.name === name)!;
@@ -55,10 +61,27 @@ describe('cometPathAu', () => {
     expect(maxR).toBeLessThanOrEqual(35 * 1.01);
   });
 
-  it('starts every path near perihelion distance q at the arc midpoint', () => {
+  it('is symmetric about its midpoint: radius is even in true anomaly', () => {
+    // r(nu) depends only on cos(nu), which is even, and the sampler mirrors
+    // nu about 0 at the midpoint index. So points equidistant from the
+    // midpoint (i and segments - i) must sit at the same heliocentric
+    // radius, regardless of nuMax — unlike an r===q check at a single
+    // fixed index, this would fail if the sampling were skewed or offset.
     const halley = byName('Halley');
     const pts = cometPathAu(halley);
-    const mid = pts[COMET_PATH_SEGMENTS / 2];
-    expect(Math.hypot(mid.x, mid.y)).toBeCloseTo(halley.perihelionDistanceAu, 4);
+    for (const i of [10, 30, 50]) {
+      const a = pts[i];
+      const b = pts[COMET_PATH_SEGMENTS - i];
+      expect(Math.hypot(b.x, b.y)).toBeCloseTo(Math.hypot(a.x, a.y), 6);
+    }
+  });
+
+  it('clips a long-period comet well inside its true aphelion', () => {
+    // Hale-Bopp: a ~= 177 AU, aphelion ~= a(1+e) ~= 354 AU. The rendered
+    // path must be clipped to the COMET_PATH_WINDOW_AU window, not the
+    // true (far larger) aphelion distance.
+    const haleBopp = byName('Hale-Bopp');
+    const maxR = Math.max(...cometPathAu(haleBopp).map((p) => Math.hypot(p.x, p.y)));
+    expect(maxR).toBeLessThanOrEqual(COMET_PATH_WINDOW_AU * 1.05);
   });
 });

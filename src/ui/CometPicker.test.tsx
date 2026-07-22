@@ -28,6 +28,16 @@ describe('CometPicker', () => {
     expect(onSelect).toHaveBeenCalledWith(null);
   });
 
+  it('flags a comet with a historical note in its button label', () => {
+    const flagged = [
+      { name: 'ISON', designation: 'C/2012 S1', note: 'historical' },
+      { name: 'Halley', designation: '1P' },
+    ];
+    render(<CometPicker comets={flagged} selected={null} onSelect={vi.fn()} onJumpToPerihelion={vi.fn()} />);
+    expect(screen.getByRole('button', { name: /ISON/ }).textContent).toContain('historical');
+    expect(screen.getByRole('button', { name: /Halley/ }).textContent).not.toContain('historical');
+  });
+
   it('shows the jump-to-perihelion button only when a comet is selected', () => {
     const onJump = vi.fn();
     const { rerender } = render(

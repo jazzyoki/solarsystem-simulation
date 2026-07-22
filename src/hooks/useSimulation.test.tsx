@@ -185,6 +185,29 @@ describe('useSimulation pointer input', () => {
     expect(hookState.selectedComet).toBe('Halley');
   });
 
+  it('deselecting a comet clears the selection (restoring planet-scale framing)', () => {
+    let hookState: any;
+
+    function TestDeselectComet() {
+      const canvasRef = useRef<HTMLCanvasElement | null>(null);
+      hookState = useSimulation(canvasRef);
+      return <canvas ref={canvasRef} />;
+    }
+
+    render(<TestDeselectComet />);
+
+    act(() => {
+      hookState.selectComet('Halley');
+    });
+    expect(hookState.selectedComet).toBe('Halley');
+
+    act(() => {
+      hookState.selectComet(null);
+    });
+
+    expect(hookState.selectedComet).toBeNull();
+  });
+
   it('jumpToPerihelion seeks to the comet Tp and pauses', () => {
     let hookState: any;
 

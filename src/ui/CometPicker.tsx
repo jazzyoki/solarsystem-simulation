@@ -1,6 +1,7 @@
 interface CometOption {
   name: string;
   designation: string;
+  note?: string;
 }
 
 interface CometPickerProps {
@@ -22,7 +23,7 @@ export function CometPicker({ comets, selected, onSelect, onJumpToPerihelion }: 
               aria-pressed={comet.name === selected}
               onClick={() => onSelect(comet.name === selected ? null : comet.name)}
             >
-              {comet.name} ({comet.designation})
+              {comet.name} ({comet.designation}){comet.note === 'historical' ? ' — historical' : ''}
             </button>
           </li>
         ))}

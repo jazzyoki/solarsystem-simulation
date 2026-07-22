@@ -92,15 +92,20 @@ export function drawScene(
     const r = Math.max(body.bodyRadius * camera.scale, body.kind === 'moon' ? 0.75 : 1.5);
 
     if (body.kind === 'comet') {
-      // Anti-sunward tail: from the comet, directly away from the Sun (origin).
-      const len = Math.hypot(body.x, body.y) || 1;
-      const tailWorld = { x: body.x + (body.x / len) * 40, y: body.y + (body.y / len) * 40 };
-      const tail = camera.worldToScreen(tailWorld);
+      // Anti-sunward direction (world), then to screen (camera flips y).
+      const helioWorld = Math.hypot(body.x, body.y) || 1;
+      const ux = body.x / helioWorld;
+      const uy = body.y / helioWorld;
+      // Tail length in screen px: longer near the Sun, clamped so it's always
+      // visible but never dominates. TAIL_NEAR_PX / (helio distance in world units).
+      const tailPx = Math.min(60, Math.max(12, 90000 / helioWorld));
+      const tailX = p.x + ux * tailPx;
+      const tailY = p.y - uy * tailPx;
       ctx.strokeStyle = COMET_TAIL;
       ctx.lineWidth = Math.max(r * 0.8, 1);
       ctx.beginPath();
       ctx.moveTo(p.x, p.y);
-      ctx.lineTo(tail.x, tail.y);
+      ctx.lineTo(tailX, tailY);
       ctx.stroke();
 
       ctx.fillStyle = body.color;

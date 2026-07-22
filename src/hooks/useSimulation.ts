@@ -23,6 +23,7 @@ export function useSimulation(canvasRef: React.RefObject<HTMLCanvasElement | nul
   const cometsEnabledRef = useRef(false);
   const selectedCometRef = useRef<string | null>(null);
   const pendingCometFrameRef = useRef<string | null>(null);
+  const pendingResetFrameRef = useRef(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -128,6 +129,10 @@ export function useSimulation(canvasRef: React.RefObject<HTMLCanvasElement | nul
         const extent = sim.cometExtent(frameComet);
         if (extent > 0) camera.fitToView(extent, width, height);
       }
+      if (pendingResetFrameRef.current && width > 0 && height > 0) {
+        pendingResetFrameRef.current = false;
+        camera.fitToView(sim.extent(currentMode), width, height);
+      }
       const cometPathRender = selectedCometRef.current && cometsEnabledRef.current
         ? sim.cometPath(selectedCometRef.current)
         : null;
@@ -202,6 +207,7 @@ export function useSimulation(canvasRef: React.RefObject<HTMLCanvasElement | nul
     if (!on) {
       selectedCometRef.current = null;
       setSelectedComet(null);
+      pendingResetFrameRef.current = true;
     }
   };
 
@@ -212,6 +218,8 @@ export function useSimulation(canvasRef: React.RefObject<HTMLCanvasElement | nul
       applyModeRef.current('toScale');
       setModeState('toScale');
       pendingCometFrameRef.current = name;
+    } else {
+      pendingResetFrameRef.current = true;
     }
   };
 

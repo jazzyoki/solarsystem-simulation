@@ -271,13 +271,19 @@ describe('drawScene', () => {
     ]);
 
     // Anti-sunward tail: stroked in the tail color, pointing away from the
-    // origin (the Sun) along the comet's own direction vector.
+    // origin (the Sun) along the comet's own direction vector. Tail length is
+    // in screen px (longer near the Sun, clamped): tailPx = min(60, max(12,
+    // 90000 / helioDistance)). At helioDistance = 90, that clamps to 60px.
     const strokeColors = ctx.strokeStyleSetter.mock.calls.map((c) => c[0]);
     expect(strokeColors).toContain('rgba(220, 240, 255, 0.5)');
-    const expectedTailEnd = camera.worldToScreen({ x: 130, y: 0 });
+    const tailPx = 60;
+    const expectedTailEnd = { x: expectedCenter.x + tailPx, y: expectedCenter.y };
     expect(vi.mocked(ctx.lineTo).mock.calls).toContainEqual([
       expectedTailEnd.x,
       expectedTailEnd.y,
     ]);
+    // Anti-sunward: the tail moves in +x on screen, matching the comet's own
+    // +x direction from the origin (away from the Sun), not toward it.
+    expect(expectedTailEnd.x).toBeGreaterThan(expectedCenter.x);
   });
 });

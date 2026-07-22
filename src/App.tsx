@@ -40,7 +40,7 @@ export default function App() {
       />
       {cometsEnabled && (
         <CometPicker
-          comets={COMETS.map((c) => ({ name: c.name, designation: c.designation }))}
+          comets={COMETS.map((c) => ({ name: c.name, designation: c.designation, note: c.note }))}
           selected={selectedComet}
           onSelect={selectComet}
           onJumpToPerihelion={jumpToPerihelion}
