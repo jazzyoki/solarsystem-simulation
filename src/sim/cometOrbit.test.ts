@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { COMETS } from './data';
-import { cometPositionAu, meanMotion } from './cometOrbit';
+import { cometPathAu, cometPositionAu, meanMotion, COMET_PATH_SEGMENTS } from './cometOrbit';
 import type { CometSpec } from './types';
 
 const byName = (name: string): CometSpec => COMETS.find((c) => c.name === name)!;
@@ -34,5 +34,31 @@ describe('cometPositionAu', () => {
     const rAtPeri = distance(encke, encke.perihelionTimeSimDays);
     const rLater = distance(encke, encke.perihelionTimeSimDays + 200);
     expect(rLater).toBeGreaterThan(rAtPeri);
+  });
+});
+
+describe('cometPathAu', () => {
+  it('returns segments + 1 points', () => {
+    expect(cometPathAu(byName('Halley'))).toHaveLength(COMET_PATH_SEGMENTS + 1);
+  });
+
+  it('closes the ellipse for a short-period comet', () => {
+    const pts = cometPathAu(byName('Encke'));
+    const first = pts[0];
+    const last = pts[pts.length - 1];
+    expect(first.x).toBeCloseTo(last.x, 6);
+    expect(first.y).toBeCloseTo(last.y, 6);
+  });
+
+  it('keeps a hyperbolic path within the radius window', () => {
+    const maxR = Math.max(...cometPathAu(byName('Borisov')).map((p) => Math.hypot(p.x, p.y)));
+    expect(maxR).toBeLessThanOrEqual(35 * 1.01);
+  });
+
+  it('starts every path near perihelion distance q at the arc midpoint', () => {
+    const halley = byName('Halley');
+    const pts = cometPathAu(halley);
+    const mid = pts[COMET_PATH_SEGMENTS / 2];
+    expect(Math.hypot(mid.x, mid.y)).toBeCloseTo(halley.perihelionDistanceAu, 4);
   });
 });
