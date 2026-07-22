@@ -62,6 +62,27 @@ body,
   background: #34406e;
 }
 
+/* Button-group wrappers generate no box, so the buttons stay direct flex
+   participants of .toolbar — desktop layout is identical to before. */
+.speed-buttons,
+.mode-buttons {
+  display: contents;
+}
+
+/* Mobile-only dropdowns: hidden by default; the media query reveals them. */
+.speed-select,
+.mode-select {
+  display: none;
+  background: #1b2340;
+  color: #cfd8ff;
+  border: 1px solid #34406e;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font: 13px system-ui, sans-serif;
+  cursor: pointer;
+  color-scheme: dark;
+}
+
 .date-controls {
   position: absolute;
   top: 12px;

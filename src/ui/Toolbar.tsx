@@ -30,32 +30,60 @@ export function Toolbar({
 }: ToolbarProps) {
   return (
     <div className="toolbar">
-      {SPEEDS.map((speed) => (
-        <button
-          key={speed}
-          type="button"
-          className={speed === multiplier ? 'active' : ''}
-          aria-pressed={speed === multiplier}
-          onClick={() => onSelectSpeed(speed)}
-        >
-          {speed}x
-        </button>
-      ))}
+      <div className="speed-buttons">
+        {SPEEDS.map((speed) => (
+          <button
+            key={speed}
+            type="button"
+            className={speed === multiplier ? 'active' : ''}
+            aria-pressed={speed === multiplier}
+            onClick={() => onSelectSpeed(speed)}
+          >
+            {speed}x
+          </button>
+        ))}
+      </div>
+      <select
+        className="speed-select"
+        aria-label="Speed"
+        value={multiplier}
+        onChange={(e) => onSelectSpeed(Number(e.target.value) as SpeedMultiplier)}
+      >
+        {SPEEDS.map((speed) => (
+          <option key={speed} value={speed}>
+            {speed}x
+          </option>
+        ))}
+      </select>
       <button type="button" aria-pressed={paused} onClick={onTogglePause}>
         {paused ? 'Resume' : 'Pause'}
       </button>
       <span className="toolbar-separator" aria-hidden="true" />
-      {MODES.map((m) => (
-        <button
-          key={m.value}
-          type="button"
-          className={m.value === mode ? 'active' : ''}
-          aria-pressed={m.value === mode}
-          onClick={() => onSelectMode(m.value)}
-        >
-          {m.label}
-        </button>
-      ))}
+      <div className="mode-buttons">
+        {MODES.map((m) => (
+          <button
+            key={m.value}
+            type="button"
+            className={m.value === mode ? 'active' : ''}
+            aria-pressed={m.value === mode}
+            onClick={() => onSelectMode(m.value)}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
+      <select
+        className="mode-select"
+        aria-label="Scale mode"
+        value={mode}
+        onChange={(e) => onSelectMode(e.target.value as ScaleMode)}
+      >
+        {MODES.map((m) => (
+          <option key={m.value} value={m.value}>
+            {m.label}
+          </option>
+        ))}
+      </select>
       <span className="toolbar-separator" aria-hidden="true" />
       <button
         type="button"

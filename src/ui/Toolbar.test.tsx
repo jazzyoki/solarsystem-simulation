@@ -77,4 +77,22 @@ describe('Toolbar', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Comets' }));
     expect(props.onToggleComets).toHaveBeenCalled();
   });
+
+  it('renders a speed dropdown reflecting the multiplier and fires onSelectSpeed on change', () => {
+    const props = renderToolbar({ multiplier: 100 });
+    const select = screen.getByRole('combobox', { name: 'Speed' }) as HTMLSelectElement;
+    expect(select.value).toBe('100');
+    expect(select.querySelectorAll('option')).toHaveLength(5);
+    fireEvent.change(select, { target: { value: '0.5' } });
+    expect(props.onSelectSpeed).toHaveBeenCalledWith(0.5);
+  });
+
+  it('renders a mode dropdown reflecting the mode and fires onSelectMode on change', () => {
+    const props = renderToolbar({ mode: 'toScale' });
+    const select = screen.getByRole('combobox', { name: 'Scale mode' }) as HTMLSelectElement;
+    expect(select.value).toBe('toScale');
+    expect(select.querySelectorAll('option')).toHaveLength(2);
+    fireEvent.change(select, { target: { value: 'schematic' } });
+    expect(props.onSelectMode).toHaveBeenCalledWith('schematic');
+  });
 });
