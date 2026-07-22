@@ -31,3 +31,28 @@ export interface BodyPosition {
   x: number;
   y: number;
 }
+
+export type CometClass = 'short' | 'long' | 'hyperbolic';
+
+export interface CometSpec {
+  name: string;
+  designation: string;
+  /** Orbital eccentricity (>= 1 for hyperbolic / near-parabolic). */
+  eccentricity: number;
+  /** Semi-major axis in AU (negative for hyperbolic). */
+  semiMajorAxisAu: number;
+  /** Perihelion distance q in AU. */
+  perihelionDistanceAu: number;
+  /** Longitude of perihelion (Omega + omega) in radians. */
+  perihelionLongitudeRad: number;
+  /** Time of perihelion passage in simDays (Tp_JD - 2461041.5). */
+  perihelionTimeSimDays: number;
+  /** True for retrograde ecliptic motion (inclination > 90 deg). */
+  retrograde: boolean;
+  cometClass: CometClass;
+  /** Exaggerated display radius in world units. */
+  bodyRadius: number;
+  color: string;
+  /** Optional flag, e.g. "historical" for ISON. */
+  note?: string;
+}

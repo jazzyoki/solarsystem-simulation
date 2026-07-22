@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ASTEROID_BELT, AU_TO_WORLD, MOONS, PLANETS } from './data';
+import { ASTEROID_BELT, AU_TO_WORLD, COMETS, MOONS, PLANETS } from './data';
 import { computeLayout } from './layout';
 
 const EXPECTED_MOON_COUNTS: Record<string, number> = {
@@ -157,5 +157,32 @@ describe('data tables', () => {
     expect(inner).toBeGreaterThan(mars.semiMajorAxisAu * (1 + mars.eccentricity) * AU_TO_WORLD);
     expect(outer).toBeLessThan(jupiter.semiMajorAxisAu * (1 - jupiter.eccentricity) * AU_TO_WORLD);
     expect(outer).toBeGreaterThan(inner);
+  });
+});
+
+describe('COMETS', () => {
+  it('contains exactly 15 comets with unique names', () => {
+    expect(COMETS).toHaveLength(15);
+    expect(new Set(COMETS.map((c) => c.name)).size).toBe(15);
+  });
+
+  it('tags hyperbolic comets iff eccentricity >= 1', () => {
+    for (const c of COMETS) {
+      expect(c.cometClass === 'hyperbolic').toBe(c.eccentricity >= 1);
+    }
+  });
+
+  it('has positive perihelion distance and radius for every comet', () => {
+    for (const c of COMETS) {
+      expect(c.perihelionDistanceAu).toBeGreaterThan(0);
+      expect(c.bodyRadius).toBeGreaterThan(0);
+    }
+  });
+
+  it('gives bound comets a positive semi-major axis and unbound a negative one', () => {
+    for (const c of COMETS) {
+      if (c.eccentricity < 1) expect(c.semiMajorAxisAu).toBeGreaterThan(0);
+      else expect(c.semiMajorAxisAu).toBeLessThan(0);
+    }
   });
 });

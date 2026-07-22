@@ -1,5 +1,5 @@
 import type { Layout } from './layout';
-import type { MoonSpec, PlanetSpec, ScaleMode } from './types';
+import type { CometSpec, MoonSpec, PlanetSpec, ScaleMode } from './types';
 
 const DEG_TO_RAD = Math.PI / 180;
 
@@ -222,4 +222,56 @@ export const MOONS: MoonSpec[] = [
   { name: 'Psamathe', parent: 'Neptune', periodDays: -9149.51 },
   { name: 'Neso', parent: 'Neptune', periodDays: -9794.71 },
   { name: 'S/2021 N 1', parent: 'Neptune', periodDays: -10036.65 },
+];
+
+const EPOCH_JD = 2461041.5;
+const COMET_BODY_RADIUS = 3;
+const COMET_COLOR = '#dbeeff';
+
+export const COMETS: CometSpec[] = [
+  { name: 'Halley', designation: '1P', eccentricity: 0.968, semiMajorAxisAu: 17.9, perihelionDistanceAu: 0.575,
+    perihelionLongitudeRad: (59.1 + 112) * DEG_TO_RAD, perihelionTimeSimDays: 2446469.97 - EPOCH_JD,
+    retrograde: true, cometClass: 'short', bodyRadius: COMET_BODY_RADIUS, color: COMET_COLOR },
+  { name: 'Encke', designation: '2P', eccentricity: 0.848, semiMajorAxisAu: 2.22, perihelionDistanceAu: 0.338,
+    perihelionLongitudeRad: (334 + 187) * DEG_TO_RAD, perihelionTimeSimDays: 2460239.65 - EPOCH_JD,
+    retrograde: false, cometClass: 'short', bodyRadius: COMET_BODY_RADIUS, color: COMET_COLOR },
+  { name: 'Churyumov-Gerasimenko', designation: '67P', eccentricity: 0.641, semiMajorAxisAu: 3.46, perihelionDistanceAu: 1.24,
+    perihelionLongitudeRad: (50.1 + 12.8) * DEG_TO_RAD, perihelionTimeSimDays: 2457247.59 - EPOCH_JD,
+    retrograde: false, cometClass: 'short', bodyRadius: COMET_BODY_RADIUS, color: COMET_COLOR },
+  { name: 'Wild 2', designation: '81P', eccentricity: 0.537, semiMajorAxisAu: 3.45, perihelionDistanceAu: 1.60,
+    perihelionLongitudeRad: (136 + 41.7) * DEG_TO_RAD, perihelionTimeSimDays: 2459929.29 - EPOCH_JD,
+    retrograde: false, cometClass: 'short', bodyRadius: COMET_BODY_RADIUS, color: COMET_COLOR },
+  { name: 'Swift-Tuttle', designation: '109P', eccentricity: 0.963, semiMajorAxisAu: 26.1, perihelionDistanceAu: 0.960,
+    perihelionLongitudeRad: (139 + 153) * DEG_TO_RAD, perihelionTimeSimDays: 2448968.50 - EPOCH_JD,
+    retrograde: true, cometClass: 'short', bodyRadius: COMET_BODY_RADIUS, color: COMET_COLOR },
+  { name: 'Tempel-Tuttle', designation: '55P', eccentricity: 0.906, semiMajorAxisAu: 10.3, perihelionDistanceAu: 0.976,
+    perihelionLongitudeRad: (235 + 173) * DEG_TO_RAD, perihelionTimeSimDays: 2450872.60 - EPOCH_JD,
+    retrograde: true, cometClass: 'short', bodyRadius: COMET_BODY_RADIUS, color: COMET_COLOR },
+  { name: 'Hale-Bopp', designation: 'C/1995 O1', eccentricity: 0.995, semiMajorAxisAu: 177, perihelionDistanceAu: 0.891,
+    perihelionLongitudeRad: (283 + 130) * DEG_TO_RAD, perihelionTimeSimDays: 2450537.14 - EPOCH_JD,
+    retrograde: false, cometClass: 'long', bodyRadius: COMET_BODY_RADIUS, color: COMET_COLOR },
+  { name: 'NEOWISE', designation: 'C/2020 F3', eccentricity: 0.999, semiMajorAxisAu: 358, perihelionDistanceAu: 0.295,
+    perihelionLongitudeRad: (61.0 + 37.3) * DEG_TO_RAD, perihelionTimeSimDays: 2459034.18 - EPOCH_JD,
+    retrograde: true, cometClass: 'long', bodyRadius: COMET_BODY_RADIUS, color: COMET_COLOR },
+  { name: 'Hyakutake', designation: 'C/1996 B2', eccentricity: 0.9999, semiMajorAxisAu: 2120, perihelionDistanceAu: 0.230,
+    perihelionLongitudeRad: (188 + 130) * DEG_TO_RAD, perihelionTimeSimDays: 2450204.89 - EPOCH_JD,
+    retrograde: true, cometClass: 'long', bodyRadius: COMET_BODY_RADIUS, color: COMET_COLOR },
+  { name: 'McNaught', designation: 'C/2006 P1', eccentricity: 1.0000189, semiMajorAxisAu: -9070, perihelionDistanceAu: 0.171,
+    perihelionLongitudeRad: (267 + 156) * DEG_TO_RAD, perihelionTimeSimDays: 2454113.30 - EPOCH_JD,
+    retrograde: false, cometClass: 'hyperbolic', bodyRadius: COMET_BODY_RADIUS, color: COMET_COLOR },
+  { name: 'Tsuchinshan-ATLAS', designation: 'C/2023 A3', eccentricity: 1.0000951, semiMajorAxisAu: -4110, perihelionDistanceAu: 0.391,
+    perihelionLongitudeRad: (21.6 + 308) * DEG_TO_RAD, perihelionTimeSimDays: 2460581.24 - EPOCH_JD,
+    retrograde: true, cometClass: 'hyperbolic', bodyRadius: COMET_BODY_RADIUS, color: COMET_COLOR },
+  { name: 'ISON', designation: 'C/2012 S1', eccentricity: 1.0000051, semiMajorAxisAu: -2450, perihelionDistanceAu: 0.0125,
+    perihelionLongitudeRad: (296 + 346) * DEG_TO_RAD, perihelionTimeSimDays: 2456625.27 - EPOCH_JD,
+    retrograde: false, cometClass: 'hyperbolic', bodyRadius: COMET_BODY_RADIUS, color: COMET_COLOR, note: 'historical' },
+  { name: "'Oumuamua", designation: '1I', eccentricity: 1.20, semiMajorAxisAu: -1.27, perihelionDistanceAu: 0.256,
+    perihelionLongitudeRad: (24.6 + 242) * DEG_TO_RAD, perihelionTimeSimDays: 2458006.01 - EPOCH_JD,
+    retrograde: true, cometClass: 'hyperbolic', bodyRadius: COMET_BODY_RADIUS, color: COMET_COLOR },
+  { name: 'Borisov', designation: '2I', eccentricity: 3.36, semiMajorAxisAu: -0.851, perihelionDistanceAu: 2.01,
+    perihelionLongitudeRad: (308 + 209) * DEG_TO_RAD, perihelionTimeSimDays: 2458826.05 - EPOCH_JD,
+    retrograde: false, cometClass: 'hyperbolic', bodyRadius: COMET_BODY_RADIUS, color: COMET_COLOR },
+  { name: '3I/ATLAS', designation: '3I', eccentricity: 6.14, semiMajorAxisAu: -0.264, perihelionDistanceAu: 1.36,
+    perihelionLongitudeRad: (322 + 128) * DEG_TO_RAD, perihelionTimeSimDays: 2460977.99 - EPOCH_JD,
+    retrograde: true, cometClass: 'hyperbolic', bodyRadius: COMET_BODY_RADIUS, color: COMET_COLOR },
 ];
