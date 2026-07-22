@@ -150,4 +150,59 @@ describe('useSimulation pointer input', () => {
 
     expect(setSimDaysSpy).toHaveBeenCalledWith(201);
   });
+
+  it('defaults comets off with no selection', () => {
+    let hookState: any;
+
+    function TestDefaults() {
+      const canvasRef = useRef<HTMLCanvasElement | null>(null);
+      hookState = useSimulation(canvasRef);
+      return <canvas ref={canvasRef} />;
+    }
+
+    render(<TestDefaults />);
+
+    expect(hookState.cometsEnabled).toBe(false);
+    expect(hookState.selectedComet).toBeNull();
+  });
+
+  it('selecting a comet switches to to-scale mode', () => {
+    let hookState: any;
+
+    function TestSelectComet() {
+      const canvasRef = useRef<HTMLCanvasElement | null>(null);
+      hookState = useSimulation(canvasRef);
+      return <canvas ref={canvasRef} />;
+    }
+
+    render(<TestSelectComet />);
+
+    act(() => {
+      hookState.selectComet('Halley');
+    });
+
+    expect(hookState.mode).toBe('toScale');
+    expect(hookState.selectedComet).toBe('Halley');
+  });
+
+  it('jumpToPerihelion seeks to the comet Tp and pauses', () => {
+    let hookState: any;
+
+    function TestJumpToPerihelion() {
+      const canvasRef = useRef<HTMLCanvasElement | null>(null);
+      hookState = useSimulation(canvasRef);
+      return <canvas ref={canvasRef} />;
+    }
+
+    render(<TestJumpToPerihelion />);
+
+    act(() => {
+      hookState.selectComet('Encke');
+    });
+    act(() => {
+      hookState.jumpToPerihelion();
+    });
+
+    expect(hookState.paused).toBe(true);
+  });
 });

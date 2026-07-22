@@ -4,7 +4,7 @@ import { Camera } from '../render/camera';
 import { drawScene } from '../render/drawScene';
 import { PointerInteraction } from './pointerInteraction';
 import type { SpeedMultiplier } from '../sim/clock';
-import { ASTEROID_BELT } from '../sim/data';
+import { ASTEROID_BELT, COMETS } from '../sim/data';
 import { formatSimDate, timestampToSimDays } from '../sim/formatDate';
 import { Simulation } from '../sim/simulation';
 import type { ScaleMode } from '../sim/types';
@@ -16,8 +16,13 @@ export function useSimulation(canvasRef: React.RefObject<HTMLCanvasElement | nul
   const [paused, setPaused] = useState(false);
   const [mode, setModeState] = useState<ScaleMode>('schematic');
   const [date, setDate] = useState(() => formatSimDate(timestampToSimDays(Date.now())));
+  const [cometsEnabled, setCometsEnabledState] = useState(false);
+  const [selectedComet, setSelectedComet] = useState<string | null>(null);
   const simRef = useRef<Simulation | null>(null);
   const applyModeRef = useRef<(m: ScaleMode) => void>(() => {});
+  const cometsEnabledRef = useRef(false);
+  const selectedCometRef = useRef<string | null>(null);
+  const pendingCometFrameRef = useRef<string | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -117,15 +122,30 @@ export function useSimulation(canvasRef: React.RefObject<HTMLCanvasElement | nul
         );
         camera.fitToView(sim.extent(currentMode), width, height);
       }
+      const frameComet = pendingCometFrameRef.current;
+      if (frameComet !== null && width > 0 && height > 0) {
+        pendingCometFrameRef.current = null;
+        const extent = sim.cometExtent(frameComet);
+        if (extent > 0) camera.fitToView(extent, width, height);
+      }
+      const cometPathRender = selectedCometRef.current && cometsEnabledRef.current
+        ? sim.cometPath(selectedCometRef.current)
+        : null;
+      const snapshot = sim.snapshot(currentMode);
+      if (cometPathRender && selectedCometRef.current) {
+        const body = sim.cometBody(selectedCometRef.current);
+        if (body) snapshot.bodies.push(body);
+      }
       drawScene(
         ctx,
-        sim.snapshot(currentMode),
+        snapshot,
         sim.layout,
         camera,
         width,
         height,
         asteroids,
         sim.orbitPaths(currentMode),
+        cometPathRender,
       );
       if (++framesSinceDateUpdate >= DATE_UPDATE_INTERVAL_FRAMES) {
         framesSinceDateUpdate = 0;
@@ -176,5 +196,35 @@ export function useSimulation(canvasRef: React.RefObject<HTMLCanvasElement | nul
     seekToDate(timestampToSimDays(Date.now()));
   };
 
-  return { multiplier, paused, mode, date, setMultiplier, togglePause, setMode, seekToDate, goToToday };
+  const setCometsEnabled = (on: boolean) => {
+    cometsEnabledRef.current = on;
+    setCometsEnabledState(on);
+    if (!on) {
+      selectedCometRef.current = null;
+      setSelectedComet(null);
+    }
+  };
+
+  const selectComet = (name: string | null) => {
+    selectedCometRef.current = name;
+    setSelectedComet(name);
+    if (name) {
+      applyModeRef.current('toScale');
+      setModeState('toScale');
+      pendingCometFrameRef.current = name;
+    }
+  };
+
+  const jumpToPerihelion = () => {
+    const name = selectedCometRef.current;
+    if (!name) return;
+    const comet = COMETS.find((c) => c.name === name);
+    if (comet) seekToDate(comet.perihelionTimeSimDays);
+  };
+
+  return {
+    multiplier, paused, mode, date, setMultiplier, togglePause, setMode,
+    seekToDate, goToToday,
+    cometsEnabled, selectedComet, setCometsEnabled, selectComet, jumpToPerihelion,
+  };
 }
