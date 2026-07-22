@@ -134,29 +134,24 @@ body,
   position: absolute;
   top: 52px;
   left: 12px;
-  max-height: 60vh;
-  overflow-y: auto;
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 6px;
-  background: rgba(27, 35, 64, 0.8);
+  align-items: center;
+}
+
+.comet-select {
+  background: #1b2340;
+  color: #cfd8ff;
   border: 1px solid #34406e;
   border-radius: 4px;
-  padding: 8px;
+  padding: 6px 10px;
+  font: 13px system-ui, sans-serif;
+  cursor: pointer;
+  color-scheme: dark;
 }
 
-.comet-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.comet-picker button {
-  width: 100%;
-  text-align: left;
+.perihelion-button {
   background: #1b2340;
   color: #cfd8ff;
   border: 1px solid #34406e;
@@ -166,18 +161,8 @@ body,
   cursor: pointer;
 }
 
-.comet-picker button:hover {
+.perihelion-button:hover {
   background: #26305a;
-}
-
-.comet-picker button.active {
-  background: #3d5afe;
-  color: #fff;
-  border-color: #3d5afe;
-}
-
-.perihelion-button {
-  margin-top: 2px;
 }
 
 @media (max-width: 640px) {
@@ -199,10 +184,5 @@ body,
     top: auto;
     bottom: calc(12px + env(safe-area-inset-bottom, 0px));
     right: 12px;
-  }
-
-  /* Keep a long comet list from running under the bottom date controls. */
-  .comet-picker {
-    max-height: 50vh;
   }
 }

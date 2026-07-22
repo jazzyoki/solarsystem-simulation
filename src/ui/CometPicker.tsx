@@ -11,23 +11,27 @@ interface CometPickerProps {
   onJumpToPerihelion: () => void;
 }
 
+function optionLabel(comet: CometOption): string {
+  const base = `${comet.name} (${comet.designation})`;
+  return comet.note === 'historical' ? `${base} — historical` : base;
+}
+
 export function CometPicker({ comets, selected, onSelect, onJumpToPerihelion }: CometPickerProps) {
   return (
     <div className="comet-picker">
-      <ul className="comet-list">
+      <select
+        className="comet-select"
+        aria-label="Comet"
+        value={selected ?? ''}
+        onChange={(e) => onSelect(e.target.value || null)}
+      >
+        <option value="">Select a comet…</option>
         {comets.map((comet) => (
-          <li key={comet.name}>
-            <button
-              type="button"
-              className={comet.name === selected ? 'active' : ''}
-              aria-pressed={comet.name === selected}
-              onClick={() => onSelect(comet.name === selected ? null : comet.name)}
-            >
-              {comet.name} ({comet.designation}){comet.note === 'historical' ? ' — historical' : ''}
-            </button>
-          </li>
+          <option key={comet.name} value={comet.name}>
+            {optionLabel(comet)}
+          </option>
         ))}
-      </ul>
+      </select>
       {selected && (
         <button type="button" className="perihelion-button" onClick={onJumpToPerihelion}>
           Jump to perihelion
