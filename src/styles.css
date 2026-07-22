@@ -197,7 +197,7 @@ body,
      bottom-right, clearing any home-indicator / gesture inset. */
   .date-controls {
     top: auto;
-    bottom: calc(12px + env(safe-area-inset-bottom));
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
     right: 12px;
   }
 
