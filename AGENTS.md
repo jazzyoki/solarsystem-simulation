@@ -66,7 +66,7 @@ Comets come in three classes (`CometSpec.cometClass`) across the 15 entries in `
 - **`long`** — long-period, elliptical (`e < 1`) but with `a` far too large to draw a full ellipse usefully; the path is clipped to the perihelion arc where `r <= COMET_PATH_WINDOW_AU` (35 AU).
 - **`hyperbolic`** — unbound (`e >= 1`), including interstellar objects (e.g. Borisov); the path is an open arc clipped to the same radius window and, additionally, stopped just inside the true-anomaly asymptote (`nuInf = acos(-1/e)`, minus a small epsilon) since the curve never closes.
 
-Path/body color is a deliberate educational cue: **green = bound orbit** (`short` or `long` — the comet returns), **red = unbound** (`hyperbolic` — a one-time pass). This is computed in `Simulation.cometPath` (`src/sim/simulation.ts`) as `CometPathRender { points; color: 'green' | 'red' }`.
+Path color is a deliberate educational cue: **green = bound orbit** (`short` or `long` — the comet returns), **red = unbound** (`hyperbolic` — a one-time pass). This is computed in `Simulation.cometPath` (`src/sim/simulation.ts`) as `CometPathRender { points; color: 'green' | 'red' }`. The comet body itself does not follow this cue — every comet renders in the same fixed icy color, `COMET_COLOR = '#dbeeff'` (`src/sim/data.ts`), regardless of class; only the orbit path is green or red.
 
 Orbit math lives entirely in `src/sim/`:
 
