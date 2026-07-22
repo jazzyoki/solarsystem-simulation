@@ -7,6 +7,7 @@ import { moonOpacity } from './visibility';
 
 type MockCtx = CanvasRenderingContext2D & {
   globalAlphaSetter: Mock<(v: number) => void>;
+  strokeStyleSetter: Mock<(v: unknown) => void>;
 };
 
 function createMockCtx(): MockCtx {
@@ -18,13 +19,14 @@ function createMockCtx(): MockCtx {
     arc: vi.fn(),
     ellipse: vi.fn(),
     moveTo: vi.fn(),
+    lineTo: vi.fn(),
     fill: vi.fn(),
     stroke: vi.fn(),
     fillText: vi.fn(),
     createRadialGradient: vi.fn(() => ({ addColorStop: vi.fn() })),
   };
   const ctx = Object.assign(
-    { fillStyle: '', strokeStyle: '', font: '', lineWidth: 0 },
+    { fillStyle: '', font: '', lineWidth: 0 },
     fns,
   ) as unknown as MockCtx;
 
@@ -41,6 +43,23 @@ function createMockCtx(): MockCtx {
     configurable: true,
   });
   ctx.globalAlphaSetter = globalAlphaSetter;
+
+  // Track every value assigned to strokeStyle (not just the last one) so tests
+  // can verify the comet path / tail were stroked with the correct color, even
+  // though later drawing steps overwrite the property afterward.
+  const strokeStyleSetter = vi.fn() as Mock<(v: unknown) => void>;
+  Object.defineProperty(ctx, 'strokeStyle', {
+    get() {
+      const calls = strokeStyleSetter.mock.calls;
+      return calls.length > 0 ? calls[calls.length - 1][0] : '';
+    },
+    set(v: unknown) {
+      strokeStyleSetter(v);
+    },
+    enumerable: true,
+    configurable: true,
+  });
+  ctx.strokeStyleSetter = strokeStyleSetter;
 
   return ctx;
 }
@@ -149,5 +168,116 @@ describe('drawScene', () => {
     expect(ctx.ellipse).toHaveBeenCalledTimes(8);
     // 9 bodies (sun + 8 planets) + 1 sun glow + 6 moon bubble guides, no orbit circles.
     expect(ctx.arc).toHaveBeenCalledTimes(16);
+  });
+
+  it('strokes the comet path in its class color', () => {
+    const sim = new Simulation();
+    const camera = new Camera();
+    camera.fitToView(1000, 800, 600);
+    const ctx = createMockCtx();
+    const snap = { simDays: 0, bodies: [] };
+    const cometPath = {
+      points: [
+        { x: 0, y: 0 },
+        { x: 100, y: 0 },
+        { x: 100, y: 100 },
+      ],
+      color: 'red' as const,
+    };
+
+    drawScene(ctx, snap, sim.layout, camera, 800, 600, [], [], cometPath);
+
+    // No orbit guides, asteroids, or bodies in this snapshot, so the only
+    // stroke() call comes from drawing the comet path.
+    expect(ctx.stroke).toHaveBeenCalledTimes(1);
+    const strokeColors = ctx.strokeStyleSetter.mock.calls.map((c) => c[0]);
+    expect(strokeColors).toContain('rgba(240, 90, 90, 0.85)');
+    // moveTo for the first point, lineTo for each subsequent point.
+    expect(ctx.moveTo).toHaveBeenCalledTimes(1);
+    expect(ctx.lineTo).toHaveBeenCalledTimes(2);
+  });
+
+  it('strokes the comet path in green for non-hyperbolic classes', () => {
+    const sim = new Simulation();
+    const camera = new Camera();
+    camera.fitToView(1000, 800, 600);
+    const ctx = createMockCtx();
+    const snap = { simDays: 0, bodies: [] };
+    const cometPath = {
+      points: [
+        { x: 0, y: 0 },
+        { x: 50, y: 0 },
+      ],
+      color: 'green' as const,
+    };
+
+    drawScene(ctx, snap, sim.layout, camera, 800, 600, [], [], cometPath);
+
+    const strokeColors = ctx.strokeStyleSetter.mock.calls.map((c) => c[0]);
+    expect(strokeColors).toContain('rgba(90, 220, 130, 0.8)');
+  });
+
+  it('does not draw a comet path with fewer than 2 points', () => {
+    const sim = new Simulation();
+    const camera = new Camera();
+    camera.fitToView(1000, 800, 600);
+    const ctx = createMockCtx();
+    const snap = { simDays: 0, bodies: [] };
+    const cometPath = { points: [{ x: 0, y: 0 }], color: 'red' as const };
+
+    drawScene(ctx, snap, sim.layout, camera, 800, 600, [], [], cometPath);
+
+    expect(ctx.stroke).not.toHaveBeenCalled();
+  });
+
+  it('draws a comet body with an anti-sunward tail and label', () => {
+    const sim = new Simulation();
+    const camera = new Camera();
+    camera.fitToView(1000, 800, 600);
+    const ctx = createMockCtx();
+    const snap = {
+      simDays: 0,
+      bodies: [
+        {
+          name: 'Halley',
+          x: 90,
+          y: 0,
+          bodyRadius: 3,
+          color: '#dbeeff',
+          kind: 'comet' as const,
+        },
+      ],
+    };
+
+    drawScene(ctx, snap, sim.layout, camera, 800, 600, [], [], null);
+
+    // The exaggerated dot: one arc, filled with the comet's own color.
+    expect(ctx.arc).toHaveBeenCalledTimes(1);
+    const expectedRadius = Math.max(3 * camera.scale, 1.5);
+    const expectedCenter = camera.worldToScreen({ x: 90, y: 0 });
+    expect(ctx.arc).toHaveBeenCalledWith(
+      expectedCenter.x,
+      expectedCenter.y,
+      expectedRadius,
+      0,
+      Math.PI * 2,
+    );
+
+    // Label with the comet's name, offset from the dot.
+    expect(vi.mocked(ctx.fillText).mock.calls).toContainEqual([
+      'Halley',
+      expectedCenter.x + expectedRadius + 4,
+      expectedCenter.y - expectedRadius - 4,
+    ]);
+
+    // Anti-sunward tail: stroked in the tail color, pointing away from the
+    // origin (the Sun) along the comet's own direction vector.
+    const strokeColors = ctx.strokeStyleSetter.mock.calls.map((c) => c[0]);
+    expect(strokeColors).toContain('rgba(220, 240, 255, 0.5)');
+    const expectedTailEnd = camera.worldToScreen({ x: 130, y: 0 });
+    expect(vi.mocked(ctx.lineTo).mock.calls).toContainEqual([
+      expectedTailEnd.x,
+      expectedTailEnd.y,
+    ]);
   });
 });
