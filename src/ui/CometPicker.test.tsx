@@ -8,34 +8,41 @@ const comets = [
 ];
 
 describe('CometPicker', () => {
-  it('lists every comet', () => {
+  it('renders a dropdown with a placeholder plus every comet', () => {
     render(<CometPicker comets={comets} selected={null} onSelect={vi.fn()} onJumpToPerihelion={vi.fn()} />);
-    expect(screen.getByRole('button', { name: /Halley/ })).toBeTruthy();
-    expect(screen.getByRole('button', { name: /Encke/ })).toBeTruthy();
+    const select = screen.getByRole('combobox', { name: 'Comet' }) as HTMLSelectElement;
+    expect(select.querySelectorAll('option')).toHaveLength(comets.length + 1);
+    expect(screen.getByRole('option', { name: /Halley/ })).toBeTruthy();
+    expect(screen.getByRole('option', { name: /Encke/ })).toBeTruthy();
   });
 
-  it('calls onSelect with the comet name', () => {
+  it('reflects the selected comet as the dropdown value', () => {
+    render(<CometPicker comets={comets} selected={'Halley'} onSelect={vi.fn()} onJumpToPerihelion={vi.fn()} />);
+    expect((screen.getByRole('combobox', { name: 'Comet' }) as HTMLSelectElement).value).toBe('Halley');
+  });
+
+  it('calls onSelect with the comet name when one is chosen', () => {
     const onSelect = vi.fn();
     render(<CometPicker comets={comets} selected={null} onSelect={onSelect} onJumpToPerihelion={vi.fn()} />);
-    fireEvent.click(screen.getByRole('button', { name: /Halley/ }));
+    fireEvent.change(screen.getByRole('combobox', { name: 'Comet' }), { target: { value: 'Halley' } });
     expect(onSelect).toHaveBeenCalledWith('Halley');
   });
 
-  it('toggles selection off when re-clicking the selected comet', () => {
+  it('calls onSelect(null) when the placeholder is chosen', () => {
     const onSelect = vi.fn();
     render(<CometPicker comets={comets} selected={'Halley'} onSelect={onSelect} onJumpToPerihelion={vi.fn()} />);
-    fireEvent.click(screen.getByRole('button', { name: /Halley/ }));
+    fireEvent.change(screen.getByRole('combobox', { name: 'Comet' }), { target: { value: '' } });
     expect(onSelect).toHaveBeenCalledWith(null);
   });
 
-  it('flags a comet with a historical note in its button label', () => {
+  it('flags a comet with a historical note in its option label', () => {
     const flagged = [
       { name: 'ISON', designation: 'C/2012 S1', note: 'historical' },
       { name: 'Halley', designation: '1P' },
     ];
     render(<CometPicker comets={flagged} selected={null} onSelect={vi.fn()} onJumpToPerihelion={vi.fn()} />);
-    expect(screen.getByRole('button', { name: /ISON/ }).textContent).toContain('historical');
-    expect(screen.getByRole('button', { name: /Halley/ }).textContent).not.toContain('historical');
+    expect(screen.getByRole('option', { name: /ISON/ }).textContent).toContain('historical');
+    expect(screen.getByRole('option', { name: /Halley/ }).textContent).not.toContain('historical');
   });
 
   it('shows the jump-to-perihelion button only when a comet is selected', () => {
