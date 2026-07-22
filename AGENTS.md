@@ -56,6 +56,30 @@ Angles are stored in radians (`× DEG_TO_RAD`); degrees shown here for readabili
 
 Moons (`MOONS`) carry only `parent` + `periodDays` (negative = retrograde); all sit at zero epoch phase except Earth's Moon, which has an `epochAngleRad` from its JPL geocentric longitude. Moons always render as schematic circular orbits around their parent. The asteroid belt (`ASTEROID_BELT.getRadii`) computes its inner/outer radii per mode — from Mars aphelion / Jupiter perihelion in to-scale mode, from layout orbit radii in schematic.
 
+### Comets
+
+A toolbar "Comets" toggle (off by default) reveals a `CometPicker` (`src/ui/CometPicker.tsx`) listing 15 famous comets (`COMETS` in `src/sim/data.ts`, typed as `CometSpec[]` in `src/sim/types.ts`). Selecting one focuses it: the hook auto-switches scale mode to **To Scale** (comet orbits are only meaningful at real scale), auto-frames the camera on the comet's `cometExtent` via a one-shot `pendingCometFrameRef`, and starts drawing the comet's path plus an exaggerated body (`bodyRadius` far larger than real, for visibility) with an anti-sunward tail and label, at the comet's real heliocentric position for the current sim date — it moves with the clock like any other body. A "Jump to perihelion" button seeks the clock to the comet's `perihelionTimeSimDays` and pauses (same seek-pauses convention as the date picker). Turning Comets off, or deselecting, clears the selection; `cometPath`/`cometBody` are `null` whenever nothing is selected or the toggle is off, so disabled comets have zero effect on existing rendering.
+
+Comets come in three classes (`CometSpec.cometClass`) across the 15 entries in `COMETS` (6 short-period, 3 long-period, 6 hyperbolic):
+
+- **`short`** — short-period, elliptical, drawn as a full closed ellipse (`nuMax = π` in the path sampler).
+- **`long`** — long-period, elliptical (`e < 1`) but with `a` far too large to draw a full ellipse usefully; the path is clipped to the perihelion arc where `r <= COMET_PATH_WINDOW_AU` (35 AU).
+- **`hyperbolic`** — unbound (`e >= 1`), including interstellar objects (e.g. Borisov); the path is an open arc clipped to the same radius window and, additionally, stopped just inside the true-anomaly asymptote (`nuInf = acos(-1/e)`, minus a small epsilon) since the curve never closes.
+
+Path/body color is a deliberate educational cue: **green = bound orbit** (`short` or `long` — the comet returns), **red = unbound** (`hyperbolic` — a one-time pass). This is computed in `Simulation.cometPath` (`src/sim/simulation.ts`) as `CometPathRender { points; color: 'green' | 'red' }`.
+
+Orbit math lives entirely in `src/sim/`:
+
+- **`kepler.ts`** — the existing planet Kepler solver (`M = E − e·sin(E)`) is hardened with a Newton+bisection fallback so it stays convergent at the high eccentricities comets have (vs. planets' near-circular orbits).
+- **`hyperbolicOrbit.ts`** (new) — solves the hyperbolic Kepler equation `M = e·sinh(H) − H` for the hyperbolic anomaly `H` via Newton–Raphson (seeded from `asinh(M/e)`), then converts `H` to true anomaly.
+- **`cometOrbit.ts`** (new) — `cometPositionAu` and `cometPathAu`. Mean motion is unified across all comet classes via Gauss's gravitational constant, `n = k / |a|^1.5` (`GAUSS_K = 0.01720209895` AU^1.5/day, `|a|` so the same formula works for hyperbolic `a < 0`) — no stored per-comet period. Position is parameterized by time of perihelion passage rather than epoch mean anomaly: `M(t) = n · (simDays − Tp)`, where `Tp` is stored as `perihelionTimeSimDays = Tp_JD − 2461041.5` (JD converted into the sim's day-0 epoch). `M` is negated for `retrograde` comets (inclination > 90°) to reverse ecliptic motion.
+  - **Radius uses the polar conic form** `r = q(1+e) / (1 + e·cos(ν))` — anchored on the stored perihelion distance `q`, not on `a(1−e)` — so the comet marker always sits exactly on its own drawn path. This is a deliberate refinement: `a`, `e`, and `q` are independently-sourced, rounded JPL elements that don't satisfy `a(1−e) = q` to full precision, so computing radius from `a` instead of `q` would visibly detach the body from the path near perihelion.
+  - The path sampler (`cometPathAu`) builds a polyline symmetric in true anomaly about perihelion, windowed per class as described above, using `COMET_PATH_SEGMENTS = 128` segments.
+
+**2D ecliptic simplification.** Like the existing planet model, comet orbits are flattened into the shared ecliptic plane: `perihelionLongitudeRad` stores the longitude of perihelion `ϖ = Ω + ω` directly (no separate inclination term applied to position), and high-inclination comets (`i > 90°`, e.g. Halley) are simply flagged `retrograde` to reverse their direction of travel along the ecliptic-projected path. This matches the planets' existing stylization — a schematic approximation of true 3D orbits, not ephemeris-grade — so comet paths, like planet orbits, should not be read as precise sky positions.
+
+Orbital elements are sourced from the JPL Small-Body Database. Comet ISON is flagged `note: 'historical'` (it was destroyed during its 2013 perihelion passage and is included for its instructive hyperbolic/near-parabolic path, not as an object still observable today). Shoemaker-Levy 9 is intentionally excluded from `COMETS` — it had no independent heliocentric orbit, having been a fragmented body in Jovian orbit at the time of its 1994 impact.
+
 ## Conventions
 
 - Keep `src/sim/` pure: it computes positions only; it knows nothing about the Canvas API, React, or screen state. Impure reads (e.g. `Date.now()`) belong in the hook, not in `src/sim/`.
