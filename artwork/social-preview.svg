@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#06181e"/>
+      <stop offset="0.55" stop-color="#0c2931"/>
+      <stop offset="1" stop-color="#163b43"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="40%" cy="35%">
+      <stop offset="0" stop-color="#fff4a8"/>
+      <stop offset="0.5" stop-color="#ffda5b"/>
+      <stop offset="1" stop-color="#f4a62a"/>
+    </radialGradient>
+    <radialGradient id="sunGlow">
+      <stop offset="0" stop-color="#ffd955" stop-opacity="0.42"/>
+      <stop offset="1" stop-color="#ffd955" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="cometTail" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eaffff" stop-opacity="0.9"/>
+      <stop offset="0.35" stop-color="#75e0cb" stop-opacity="0.52"/>
+      <stop offset="1" stop-color="#75e0cb" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="softGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+    <pattern id="stars" width="92" height="78" patternUnits="userSpaceOnUse">
+      <circle cx="12" cy="19" r="1.2" fill="#dff7f3" opacity="0.42"/>
+      <circle cx="67" cy="52" r="0.8" fill="#dff7f3" opacity="0.28"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#background)"/>
+  <rect width="1200" height="630" fill="url(#stars)"/>
+  <circle cx="896" cy="242" r="360" fill="none" stroke="#75e0cb" stroke-opacity="0.22" stroke-width="2"/>
+  <circle cx="896" cy="242" r="280" fill="none" stroke="#75e0cb" stroke-opacity="0.25" stroke-width="2"/>
+  <circle cx="896" cy="242" r="196" fill="none" stroke="#75e0cb" stroke-opacity="0.28" stroke-width="2"/>
+  <circle cx="896" cy="242" r="116" fill="none" stroke="#75e0cb" stroke-opacity="0.32" stroke-width="2"/>
+
+  <circle cx="896" cy="242" r="92" fill="url(#sunGlow)" filter="url(#softGlow)"/>
+  <circle cx="896" cy="242" r="43" fill="url(#sun)"/>
+  <circle cx="781" cy="390" r="14" fill="#ef7659"/>
+  <circle cx="1047" cy="169" r="10" fill="#4d9de0"/>
+  <circle cx="615" cy="213" r="7" fill="#e3bb76"/>
+  <circle cx="1124" cy="425" r="17" fill="#d8a25e"/>
+  <ellipse cx="1124" cy="425" rx="30" ry="8" fill="none" stroke="#e7c98b" stroke-width="3" transform="rotate(-16 1124 425)"/>
+
+  <path d="M1070 84 C1008 105 943 145 872 207" fill="none" stroke="url(#cometTail)" stroke-width="28" stroke-linecap="round"/>
+  <path d="M1070 84 C1005 108 946 148 880 202" fill="none" stroke="#b9fff0" stroke-opacity="0.55" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="1071" cy="84" r="11" fill="#efffff"/>
+  <circle cx="1071" cy="84" r="24" fill="#b9fff0" opacity="0.25" filter="url(#softGlow)"/>
+
+  <text x="82" y="356" fill="#ffffff" font-family="system-ui, sans-serif" font-size="68" font-weight="700" letter-spacing="-2">Micro Solar System</text>
+  <text x="82" y="433" fill="#ffffff" font-family="system-ui, sans-serif" font-size="68" font-weight="700" letter-spacing="-2">Simulation</text>
+  <text x="86" y="492" fill="#9dd9d1" font-family="system-ui, sans-serif" font-size="23" font-weight="600" letter-spacing="5">PLANETS, MOONS &amp; COMETS</text>
+  <rect x="82" y="530" width="82" height="4" rx="2" fill="#75e0cb"/>
+</svg>
