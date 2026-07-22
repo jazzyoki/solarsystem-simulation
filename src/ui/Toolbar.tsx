@@ -8,6 +8,8 @@ export interface ToolbarProps {
   onSelectSpeed: (m: SpeedMultiplier) => void;
   onTogglePause: () => void;
   onSelectMode: (mode: ScaleMode) => void;
+  cometsEnabled: boolean;
+  onToggleComets: () => void;
 }
 
 const SPEEDS: SpeedMultiplier[] = [0.5, 1, 10, 100, 1000];
@@ -23,6 +25,8 @@ export function Toolbar({
   onSelectSpeed,
   onTogglePause,
   onSelectMode,
+  cometsEnabled,
+  onToggleComets,
 }: ToolbarProps) {
   return (
     <div className="toolbar">
@@ -52,6 +56,15 @@ export function Toolbar({
           {m.label}
         </button>
       ))}
+      <span className="toolbar-separator" aria-hidden="true" />
+      <button
+        type="button"
+        className={cometsEnabled ? 'active' : ''}
+        aria-pressed={cometsEnabled}
+        onClick={onToggleComets}
+      >
+        Comets
+      </button>
     </div>
   );
 }

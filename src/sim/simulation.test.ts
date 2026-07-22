@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { COMETS } from './data';
 import { Simulation } from './simulation';
 
 /** Advances the clock in clamp-safe steps (SimClock clamps a single call to 0.25 s). */
@@ -149,5 +150,33 @@ describe('Simulation', () => {
   it('reports a larger extent in to-scale mode than schematic', () => {
     const sim = new Simulation();
     expect(sim.extent('toScale')).toBeGreaterThan(sim.extent('schematic'));
+  });
+});
+
+describe('Simulation comets', () => {
+  it('returns null for an unknown comet', () => {
+    const sim = new Simulation();
+    expect(sim.cometBody('Nope')).toBeNull();
+    expect(sim.cometPath('Nope')).toBeNull();
+  });
+
+  it('colors bound comets green and unbound comets red', () => {
+    const sim = new Simulation();
+    expect(sim.cometPath('Halley')!.color).toBe('green');
+    expect(sim.cometPath('Borisov')!.color).toBe('red');
+  });
+
+  it('reports a comet body in world units with kind "comet"', () => {
+    const sim = new Simulation();
+    sim.clock.setSimDays(COMETS.find((c) => c.name === 'Halley')!.perihelionTimeSimDays);
+    const body = sim.cometBody('Halley')!;
+    expect(body.kind).toBe('comet');
+    // At perihelion, q = 0.575 AU * 150 = ~86 world units from the Sun.
+    expect(Math.hypot(body.x, body.y)).toBeCloseTo(0.575 * 150, 0);
+  });
+
+  it('gives a positive framing extent', () => {
+    const sim = new Simulation();
+    expect(sim.cometExtent('Halley')).toBeGreaterThan(0);
   });
 });

@@ -14,6 +14,7 @@ A browser-based, stylized solar system visualization built with React, TypeScrip
 - **Starts on today's date.** On launch the clock seeds to today's UTC date and keeps running, so you first see today's constellation.
 - **Clickable date + date picker.** Click the date to reveal a native date input; picking a date seeks the simulation to that date at 00:00 UTC and pauses.
 - **"Today" button** beside the date seeks back to today's UTC date and pauses.
+- **Comets.** Turn on the "Comets" toggle in the toolbar to reveal a picker of 15 famous comets. Pick one to focus it — the view switches to To Scale and frames the comet's orbit (a full ellipse for short-period comets; a near-Sun arc for long-period and interstellar ones), drawing its path and an exaggerated, labeled comet body (with tail) at its real position for the current simulated date. Path color tells you what kind of orbit it is: **green** means the comet is bound and returns periodically; **red** means it's on an unbound, one-time pass through the inner solar system (including interstellar visitors like 'Oumuamua and Borisov). Use **"Jump to perihelion"** to seek the clock straight to the comet's closest approach to the Sun.
 
 ## Getting Started
 

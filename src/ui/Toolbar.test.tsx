@@ -10,6 +10,8 @@ function renderToolbar(overrides: Partial<ToolbarProps> = {}) {
     onSelectSpeed: vi.fn(),
     onTogglePause: vi.fn(),
     onSelectMode: vi.fn(),
+    cometsEnabled: false,
+    onToggleComets: vi.fn(),
     ...overrides,
   };
   render(<Toolbar {...props} />);
@@ -62,5 +64,17 @@ describe('Toolbar', () => {
     expect(props.onSelectMode).toHaveBeenCalledWith('toScale');
     fireEvent.click(screen.getByRole('button', { name: 'Schematic' }));
     expect(props.onSelectMode).toHaveBeenCalledWith('schematic');
+  });
+
+  it('renders the Comets toggle and reflects its state', () => {
+    renderToolbar({ cometsEnabled: true });
+    const btn = screen.getByRole('button', { name: 'Comets' });
+    expect(btn.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('calls onToggleComets when the Comets button is clicked', () => {
+    const props = renderToolbar();
+    fireEvent.click(screen.getByRole('button', { name: 'Comets' }));
+    expect(props.onToggleComets).toHaveBeenCalled();
   });
 });
