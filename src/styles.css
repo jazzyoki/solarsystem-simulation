@@ -179,3 +179,30 @@ body,
 .perihelion-button {
   margin-top: 2px;
 }
+
+@media (max-width: 640px) {
+  /* Collapse the button groups (and their separators) in favor of dropdowns. */
+  .speed-buttons,
+  .mode-buttons,
+  .toolbar-separator {
+    display: none;
+  }
+
+  .speed-select,
+  .mode-select {
+    display: inline-block;
+  }
+
+  /* Move the date + Today controls out of the toolbar's way, to the
+     bottom-right, clearing any home-indicator / gesture inset. */
+  .date-controls {
+    top: auto;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    right: 12px;
+  }
+
+  /* Keep a long comet list from running under the bottom date controls. */
+  .comet-picker {
+    max-height: 50vh;
+  }
+}
