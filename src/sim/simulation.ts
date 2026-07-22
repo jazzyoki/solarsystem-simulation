@@ -1,5 +1,6 @@
 import { SimClock } from './clock';
-import { AU_TO_WORLD, MOONS, MOON_STYLE, PLANETS, SUN } from './data';
+import { AU_TO_WORLD, COMETS, MOONS, MOON_STYLE, PLANETS, SUN } from './data';
+import { cometPathAu, cometPositionAu } from './cometOrbit';
 import {
   ellipseGeometry,
   ellipticalPositionAu,
@@ -8,7 +9,7 @@ import {
 } from './ellipticalOrbit';
 import { computeLayout, type Layout } from './layout';
 import { angleAt, orbitalPosition } from './orbits';
-import type { BodyPosition, PlanetSpec, ScaleMode } from './types';
+import type { BodyPosition, CometSpec, PlanetSpec, ScaleMode } from './types';
 
 export interface BodySnapshot {
   name: string;
@@ -16,12 +17,17 @@ export interface BodySnapshot {
   y: number;
   bodyRadius: number;
   color: string;
-  kind: 'sun' | 'planet' | 'moon';
+  kind: 'sun' | 'planet' | 'moon' | 'comet';
 }
 
 export interface Snapshot {
   simDays: number;
   bodies: BodySnapshot[];
+}
+
+export interface CometPathRender {
+  points: BodyPosition[];
+  color: 'green' | 'red';
 }
 
 export type OrbitPath =
@@ -120,5 +126,37 @@ export class Simulation {
     return Math.max(
       ...Object.values(this.layout.planets).map((e) => e.orbitRadius + e.bubbleRadius),
     );
+  }
+
+  private findComet(cometName: string): CometSpec | undefined {
+    return COMETS.find((c) => c.name === cometName);
+  }
+
+  cometBody(cometName: string): BodySnapshot | null {
+    const comet = this.findComet(cometName);
+    if (!comet) return null;
+    const au = cometPositionAu(comet, this.clock.simDays);
+    return {
+      name: comet.name,
+      x: au.x * AU_TO_WORLD,
+      y: au.y * AU_TO_WORLD,
+      bodyRadius: comet.bodyRadius,
+      color: comet.color,
+      kind: 'comet',
+    };
+  }
+
+  cometPath(cometName: string): CometPathRender | null {
+    const comet = this.findComet(cometName);
+    if (!comet) return null;
+    const points = cometPathAu(comet).map((p) => ({ x: p.x * AU_TO_WORLD, y: p.y * AU_TO_WORLD }));
+    return { points, color: comet.cometClass === 'hyperbolic' ? 'red' : 'green' };
+  }
+
+  cometExtent(cometName: string): number {
+    const comet = this.findComet(cometName);
+    if (!comet) return 0;
+    const maxAu = Math.max(...cometPathAu(comet).map((p) => Math.hypot(p.x, p.y)));
+    return maxAu * AU_TO_WORLD;
   }
 }
