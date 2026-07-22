@@ -62,6 +62,27 @@ body,
   background: #34406e;
 }
 
+/* Button-group wrappers generate no box, so the buttons stay direct flex
+   participants of .toolbar — desktop layout is identical to before. */
+.speed-buttons,
+.mode-buttons {
+  display: contents;
+}
+
+/* Mobile-only dropdowns: hidden by default; the media query reveals them. */
+.speed-select,
+.mode-select {
+  display: none;
+  background: #1b2340;
+  color: #cfd8ff;
+  border: 1px solid #34406e;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font: 13px system-ui, sans-serif;
+  cursor: pointer;
+  color-scheme: dark;
+}
+
 .date-controls {
   position: absolute;
   top: 12px;
@@ -157,4 +178,31 @@ body,
 
 .perihelion-button {
   margin-top: 2px;
+}
+
+@media (max-width: 640px) {
+  /* Collapse the button groups (and their separators) in favor of dropdowns. */
+  .speed-buttons,
+  .mode-buttons,
+  .toolbar-separator {
+    display: none;
+  }
+
+  .speed-select,
+  .mode-select {
+    display: inline-block;
+  }
+
+  /* Move the date + Today controls out of the toolbar's way, to the
+     bottom-right, clearing any home-indicator / gesture inset. */
+  .date-controls {
+    top: auto;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    right: 12px;
+  }
+
+  /* Keep a long comet list from running under the bottom date controls. */
+  .comet-picker {
+    max-height: 50vh;
+  }
 }
