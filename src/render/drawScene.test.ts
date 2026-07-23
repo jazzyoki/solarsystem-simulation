@@ -74,10 +74,10 @@ describe('drawScene', () => {
     drawScene(ctx, sim.snapshot(), sim.layout, camera, 800, 600, [], sim.orbitPaths());
 
     expect(ctx.fillRect).toHaveBeenCalledTimes(1);
-    // 9 bodies (sun + 8 planets) + 1 sun glow + 8 planet orbit guides + 6 moon bubble guides
-    expect(ctx.arc).toHaveBeenCalledTimes(24);
-    // Only planet labels; moon labels are hidden at this zoom.
-    expect(ctx.fillText).toHaveBeenCalledTimes(8);
+    // 10 bodies (sun + 9 major bodies) + 1 sun glow + 9 orbit guides + 7 moon bubble guides
+    expect(ctx.arc).toHaveBeenCalledTimes(27);
+    // Only major-body labels; moon labels are hidden at this zoom.
+    expect(ctx.fillText).toHaveBeenCalledTimes(9);
     expect(vi.mocked(ctx.fillText).mock.calls.map((c) => c[0])).toEqual(
       PLANETS.map((p) => p.name),
     );
@@ -92,8 +92,8 @@ describe('drawScene', () => {
 
     drawScene(ctx, sim.snapshot(), sim.layout, camera, 800, 600, [], sim.orbitPaths());
 
-    // 107 bodies + 1 sun glow + 8 orbit guides + 6 moon bubble guides.
-    expect(ctx.arc).toHaveBeenCalledTimes(122);
+    // 109 bodies + 1 sun glow + 9 orbit guides + 7 moon bubble guides.
+    expect(ctx.arc).toHaveBeenCalledTimes(126);
     expect(vi.mocked(ctx.fillText).mock.calls.some((c) => c[0] === 'Moon')).toBe(true);
 
     // Find the Moon body arc and verify it is wrapped in save()/restore()
@@ -144,7 +144,7 @@ describe('drawScene', () => {
 
     drawScene(ctx, sim.snapshot(), sim.layout, camera, 800, 600, belt, sim.orbitPaths());
 
-    expect(ctx.arc).toHaveBeenCalledTimes(522); // 122 + 400 belt asteroids
+    expect(ctx.arc).toHaveBeenCalledTimes(526); // 126 + 400 belt asteroids
   });
 
   it('draws rotated ellipse guides in to-scale mode', () => {
@@ -164,10 +164,10 @@ describe('drawScene', () => {
       sim.orbitPaths('toScale'),
     );
 
-    // One ellipse per planet; no circular orbit guides.
-    expect(ctx.ellipse).toHaveBeenCalledTimes(8);
-    // 9 bodies (sun + 8 planets) + 1 sun glow + 6 moon bubble guides, no orbit circles.
-    expect(ctx.arc).toHaveBeenCalledTimes(16);
+    // One ellipse per major body; no circular orbit guides.
+    expect(ctx.ellipse).toHaveBeenCalledTimes(9);
+    // 10 bodies + 1 sun glow + 7 moon bubble guides, no orbit circles.
+    expect(ctx.arc).toHaveBeenCalledTimes(18);
   });
 
   it('strokes the comet path in its class color', () => {

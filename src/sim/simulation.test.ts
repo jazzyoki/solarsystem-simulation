@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { COMETS } from './data';
+import { AU_TO_WORLD, COMETS, PLANETS } from './data';
 import { Simulation } from './simulation';
 
 /** Advances the clock in clamp-safe steps (SimClock clamps a single call to 0.25 s). */
@@ -23,6 +23,7 @@ const EXPECTED_PLANET_EPOCH_ANGLES_DEG: Record<string, number> = {
   Saturn: 1.552905047,
   Uranus: 59.539656457,
   Neptune: 0.995246704,
+  Pluto: 302.961154488,
 };
 
 function normalizedAngle(y: number, x: number): number {
@@ -31,8 +32,8 @@ function normalizedAngle(y: number, x: number): number {
 }
 
 describe('Simulation', () => {
-  it('snapshots 107 bodies (1 sun + 8 planets + 98 moons)', () => {
-    expect(new Simulation().snapshot().bodies).toHaveLength(107);
+  it('snapshots 109 bodies (1 sun + 9 major bodies + 99 moons)', () => {
+    expect(new Simulation().snapshot().bodies).toHaveLength(109);
   });
 
   it('places the sun at the origin', () => {
@@ -104,6 +105,16 @@ describe('Simulation', () => {
     expect(angle).toBeCloseTo((2 * Math.PI) / -5.8769, 5);
   });
 
+  it('Charon orbits retrograde around Pluto', () => {
+    const sim = new Simulation();
+    advanceDays(sim, 1);
+    const bodies = sim.snapshot().bodies;
+    const pluto = bodies.find((b) => b.name === 'Pluto')!;
+    const charon = bodies.find((b) => b.name === 'Charon')!;
+    const angle = Math.atan2(charon.y - pluto.y, charon.x - pluto.x);
+    expect(angle).toBeCloseTo((2 * Math.PI) / -6.387222, 5);
+  });
+
   it('places every planet at its epoch longitude in to-scale mode', () => {
     const bodies = new Simulation().snapshot('toScale').bodies;
     for (const [name, deg] of Object.entries(EXPECTED_PLANET_EPOCH_ANGLES_DEG)) {
@@ -118,6 +129,7 @@ describe('Simulation', () => {
       const b = bodies.find((x) => x.name === n)!;
       return Math.hypot(b.x, b.y);
     };
+    expect(dist('Pluto')).toBeGreaterThan(dist('Neptune'));
     expect(dist('Neptune')).toBeGreaterThan(dist('Uranus'));
     expect(dist('Uranus')).toBeGreaterThan(dist('Saturn'));
     expect(dist('Saturn')).toBeGreaterThan(dist('Jupiter'));
@@ -135,21 +147,31 @@ describe('Simulation', () => {
     expect(a.bodies).toEqual(b.bodies);
   });
 
-  it('produces one ellipse path per planet in to-scale mode', () => {
+  it('produces one ellipse path per major body in to-scale mode', () => {
     const paths = new Simulation().orbitPaths('toScale');
-    expect(paths).toHaveLength(8);
+    expect(paths).toHaveLength(9);
     expect(paths.every((p) => p.kind === 'ellipse')).toBe(true);
   });
 
   it('produces circular paths in schematic mode', () => {
     const paths = new Simulation().orbitPaths('schematic');
-    expect(paths).toHaveLength(8);
+    expect(paths).toHaveLength(9);
     expect(paths.every((p) => p.kind === 'circle')).toBe(true);
   });
 
-  it('reports a larger extent in to-scale mode than schematic', () => {
+  it('includes Pluto and Charon in the schematic extent', () => {
     const sim = new Simulation();
-    expect(sim.extent('toScale')).toBeGreaterThan(sim.extent('schematic'));
+    const pluto = sim.layout.planets.Pluto;
+    expect(sim.extent('schematic')).toBe(pluto.orbitRadius + pluto.bubbleRadius);
+  });
+
+  it("includes Pluto's aphelion in the to-scale extent", () => {
+    const sim = new Simulation();
+    const pluto = PLANETS.find((planet) => planet.name === 'Pluto')!;
+    expect(sim.extent('toScale')).toBeCloseTo(
+      pluto.semiMajorAxisAu * (1 + pluto.eccentricity) * AU_TO_WORLD,
+      10,
+    );
   });
 });
 

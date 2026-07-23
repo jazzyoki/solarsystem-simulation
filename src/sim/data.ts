@@ -115,6 +115,17 @@ export const PLANETS: PlanetSpec[] = [
     bodyRadius: 9,
     color: '#5b7fd4',
   },
+  // Dwarf planet
+  {
+    name: 'Pluto',
+    periodDays: 90921.85108674582,
+    epochAngleRad: 302.961154488 * DEG_TO_RAD,
+    semiMajorAxisAu: 39.57126152242962,
+    eccentricity: 0.2494484952274253,
+    perihelionLongitudeRad: 225.218605929714 * DEG_TO_RAD,
+    bodyRadius: 4,
+    color: '#b8a99a',
+  },
 ];
 
 export const MOONS: MoonSpec[] = [
@@ -222,6 +233,8 @@ export const MOONS: MoonSpec[] = [
   { name: 'Psamathe', parent: 'Neptune', periodDays: -9149.51 },
   { name: 'Neso', parent: 'Neptune', periodDays: -9794.71 },
   { name: 'S/2021 N 1', parent: 'Neptune', periodDays: -10036.65 },
+  // Pluto (1)
+  { name: 'Charon', parent: 'Pluto', periodDays: -6.387222 },
 ];
 
 const EPOCH_JD = 2461041.5;
