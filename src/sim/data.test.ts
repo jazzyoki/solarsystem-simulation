@@ -79,6 +79,14 @@ describe('data tables', () => {
     ]);
   });
 
+  it('stores Pluto\'s period and display values', () => {
+    expect(PLANETS.find((planet) => planet.name === 'Pluto')).toMatchObject({
+      periodDays: 90921.85108674582,
+      bodyRadius: 4,
+      color: '#b8a99a',
+    });
+  });
+
   it('has 99 moons', () => {
     expect(MOONS).toHaveLength(99);
   });
