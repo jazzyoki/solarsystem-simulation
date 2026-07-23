@@ -1,0 +1,64 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-deployment
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Configure SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          install -m 600 /dev/null ~/.ssh/id_ed25519
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Upload and promote release
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          PROJECT_DIR="dev/solar-system-simulation"
+          RELEASE_DIR="$PROJECT_DIR/.deploy/releases/${{ github.sha }}"
+          ssh -o StrictHostKeyChecking=yes "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p ~/$PROJECT_DIR/.deploy/releases"
+          ssh -o StrictHostKeyChecking=yes "$DEPLOY_USER@$DEPLOY_HOST" "rm -rf ~/$RELEASE_DIR.tmp && mkdir -p ~/$RELEASE_DIR.tmp"
+          tar -C dist -czf - . | ssh -o StrictHostKeyChecking=yes "$DEPLOY_USER@$DEPLOY_HOST" "tar -xzf - -C ~/$RELEASE_DIR.tmp"
+          ssh -o StrictHostKeyChecking=yes "$DEPLOY_USER@$DEPLOY_HOST" "rm -rf ~/$RELEASE_DIR && mv ~/$RELEASE_DIR.tmp ~/$RELEASE_DIR && ln -sfn releases/${{ github.sha }} ~/$PROJECT_DIR/.deploy/next && mv -Tf ~/$PROJECT_DIR/.deploy/next ~/$PROJECT_DIR/.deploy/current"
+
+      - name: Activate Nginx site
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          scp -o StrictHostKeyChecking=yes deploy/nginx/solar-system-simulation.conf "$DEPLOY_USER@$DEPLOY_HOST:/tmp/solar-system-simulation.conf"
+          ssh -o StrictHostKeyChecking=yes "$DEPLOY_USER@$DEPLOY_HOST" 'set -eu; PROJECT_ROOT="$HOME/dev/solar-system-simulation"; sed "s|__PROJECT_ROOT__|$PROJECT_ROOT|g" /tmp/solar-system-simulation.conf | sudo tee /etc/nginx/sites-available/solar-system-simulation >/dev/null; if [ -e /etc/nginx/sites-enabled/solar ]; then sudo mv /etc/nginx/sites-enabled/solar /etc/nginx/sites-enabled/solar.previous; fi; sudo ln -sfn /etc/nginx/sites-available/solar-system-simulation /etc/nginx/sites-enabled/solar-system-simulation; if ! sudo nginx -t; then sudo rm -f /etc/nginx/sites-enabled/solar-system-simulation; if [ -e /etc/nginx/sites-enabled/solar.previous ]; then sudo mv /etc/nginx/sites-enabled/solar.previous /etc/nginx/sites-enabled/solar; fi; exit 1; fi; sudo rm -f /etc/nginx/sites-enabled/solar.previous; sudo systemctl reload nginx'

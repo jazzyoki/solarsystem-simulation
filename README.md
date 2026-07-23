@@ -31,45 +31,28 @@ Open the URL shown in your terminal (usually `http://localhost:5173`).
 - `npm test` — run the Vitest test suite
 - `npm run build` — type-check and build for production
 
-## Deploying with Nginx
+## Production Deployment
 
-A sample `nginx.conf` is provided in the project root. It reverse-proxies requests from port `5199` to the Vite dev server on port `5173`, including WebSocket support for Hot Module Replacement (HMR).
+Pushing to `main` builds, tests, and deploys the static Vite output through the
+GitHub Actions workflow. The Debian server only needs Nginx and an SSH account
+with passwordless `sudo`; it does not run Vite or require Node.js.
 
-### Example configuration
+The server checkout must be located at `~/dev/solar-system-simulation`. Add
+these GitHub Actions repository secrets:
 
-```nginx
-server {
-    listen 5199;
-    server_name localhost;
+- `DEPLOY_HOST`: server hostname or IP address
+- `DEPLOY_USER`: SSH account that owns the checkout
+- `DEPLOY_SSH_KEY`: private key authorized for that account
+- `DEPLOY_KNOWN_HOSTS`: pinned server host key, generated with
+  `ssh-keyscan -H <DEPLOY_HOST>` from a trusted network
 
-    location / {
-        proxy_pass http://localhost:5173;
-        proxy_http_version 1.1;
+Each deployment uploads the built `dist/` assets into
+`~/dev/solar-system-simulation/.deploy/releases/<commit SHA>/`, then atomically
+updates `.deploy/current`. Nginx serves that symlink on port `5199` for
+`solar.yokicloud.net`, replacing the former proxy to the Vite development server.
 
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-
-        # WebSocket support required for Vite HMR
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }
-}
-```
-
-### Usage
-
-```bash
-# 1. Start the Vite dev server
-npm run dev
-
-# 2. In another terminal, test and start nginx
-nginx -t -c /path/to/nginx.conf
-nginx -c /path/to/nginx.conf
-```
-
-Then open `http://localhost:5199`.
+The workflow validates the Nginx configuration before reloading it. If the
+build or upload fails, the previously deployed release remains active.
 
 ## Implementation Notes
 
