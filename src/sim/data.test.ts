@@ -11,6 +11,7 @@ const EXPECTED_MOON_COUNTS: Record<string, number> = {
   Saturn: 30,
   Uranus: 29,
   Neptune: 16,
+  Pluto: 1,
 };
 
 const DEG_TO_RAD = Math.PI / 180;
@@ -24,6 +25,7 @@ const EXPECTED_PLANET_EPOCH_ANGLES_DEG: Record<string, number> = {
   Saturn: 1.552905047,
   Uranus: 59.539656457,
   Neptune: 0.995246704,
+  Pluto: 302.961154488,
 };
 
 const EXPECTED_SEMI_MAJOR_AXIS_AU: Record<string, number> = {
@@ -35,6 +37,7 @@ const EXPECTED_SEMI_MAJOR_AXIS_AU: Record<string, number> = {
   Saturn: 9.53667594,
   Uranus: 19.18916464,
   Neptune: 30.06992276,
+  Pluto: 39.57126152242962,
 };
 
 const EXPECTED_ECCENTRICITY: Record<string, number> = {
@@ -46,6 +49,7 @@ const EXPECTED_ECCENTRICITY: Record<string, number> = {
   Saturn: 0.05386179,
   Uranus: 0.04725744,
   Neptune: 0.00859048,
+  Pluto: 0.2494484952274253,
 };
 
 const EXPECTED_PERIHELION_LONGITUDE_DEG: Record<string, number> = {
@@ -57,10 +61,11 @@ const EXPECTED_PERIHELION_LONGITUDE_DEG: Record<string, number> = {
   Saturn: 92.59887831,
   Uranus: 170.9542763,
   Neptune: 44.96476227,
+  Pluto: 225.218605929714,
 };
 
 describe('data tables', () => {
-  it('has 8 planets in solar order', () => {
+  it('has 8 planets followed by dwarf planet Pluto in solar order', () => {
     expect(PLANETS.map((p) => p.name)).toEqual([
       'Mercury',
       'Venus',
@@ -70,11 +75,20 @@ describe('data tables', () => {
       'Saturn',
       'Uranus',
       'Neptune',
+      'Pluto',
     ]);
   });
 
-  it('has 98 moons', () => {
-    expect(MOONS).toHaveLength(98);
+  it('stores Pluto\'s period and display values', () => {
+    expect(PLANETS.find((planet) => planet.name === 'Pluto')).toMatchObject({
+      periodDays: 90921.85108674582,
+      bodyRadius: 4,
+      color: '#b8a99a',
+    });
+  });
+
+  it('has 99 moons', () => {
+    expect(MOONS).toHaveLength(99);
   });
 
   it('has the expected moon count per planet', () => {
@@ -84,6 +98,14 @@ describe('data tables', () => {
         planet,
       ).toBe(count);
     }
+  });
+
+  it("stores Charon as Pluto's retrograde moon", () => {
+    expect(MOONS.find((moon) => moon.name === 'Charon')).toEqual({
+      name: 'Charon',
+      parent: 'Pluto',
+      periodDays: -6.387222,
+    });
   });
 
   it('every moon parent exists', () => {
