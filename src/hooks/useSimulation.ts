@@ -56,6 +56,7 @@ export function useSimulation(
     let pendingMode: ViewMode | null = null;
     let threeRenderer: ThreeRenderer | null = null;
     let threeLoading = false;
+    let threeLoadFailed = false;
     let disposed = false;
     applyModeRef.current = (m: ViewMode) => {
       pendingMode = m;
@@ -129,6 +130,7 @@ export function useSimulation(
       if (pendingMode !== null && width > 0 && height > 0) {
         currentMode = pendingMode;
         pendingMode = null;
+        threeLoadFailed = false;
         if (currentMode !== 'threeD') {
           asteroids = buildAsteroidBelt(
             sim.layout,
@@ -142,20 +144,26 @@ export function useSimulation(
         }
       }
       if (currentMode === 'threeD') {
-        if (!threeRenderer && !threeLoading && canvas3d) {
+        if (!threeRenderer && !threeLoading && !threeLoadFailed && canvas3d) {
           threeLoading = true;
-          void import('../render3d').then((m) => {
-            if (disposed) return;
-            const belt = m.buildBelt3d(sim.layout, ASTEROID_BELT.seed, ASTEROID_BELT.count);
-            threeRenderer = new m.ThreeRenderer(
-              canvas3d,
-              sim.orbitPaths3D(),
-              belt,
-              sim.extent('toScale'),
-            );
-            threeRenderer.setSize(width, height, window.devicePixelRatio || 1);
-            threeLoading = false;
-          });
+          void import('../render3d')
+            .then((m) => {
+              if (disposed) return;
+              const belt = m.buildBelt3d(sim.layout, ASTEROID_BELT.seed, ASTEROID_BELT.count);
+              threeRenderer = new m.ThreeRenderer(
+                canvas3d,
+                sim.orbitPaths3D(),
+                belt,
+                sim.extent('toScale'),
+              );
+              threeRenderer.setSize(width, height, window.devicePixelRatio || 1);
+              threeLoading = false;
+            })
+            .catch((error) => {
+              threeLoading = false;
+              threeLoadFailed = true;
+              console.error('3D renderer failed to load', error);
+            });
         }
         if (threeRenderer) {
           const frameComet3d = pendingCometFrameRef.current;
