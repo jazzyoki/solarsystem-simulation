@@ -1,10 +1,9 @@
 import * as THREE from 'three';
-import type { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import type { BodySnapshot3D, CometPath3DRender, Snapshot3D } from '../sim/simulation';
 import type { Vec3 } from '../sim/types';
 import { createBodyObject } from './bodies';
 import { createBeltPoints, updateBeltPositions, type BeltAsteroid3D } from './belt';
-import { createControls } from './controls';
+import { createControls, type ControlsHandle } from './controls';
 import { createCometPathLine, createOrbitLine } from './orbits';
 
 const BACKGROUND = 0x0a0e1a;
@@ -29,7 +28,7 @@ export class ThreeRenderer {
   private renderer: THREE.WebGLRenderer;
   private scene = new THREE.Scene();
   private camera: THREE.PerspectiveCamera;
-  private controls: OrbitControls;
+  private controlsHandle: ControlsHandle;
   private loader = new THREE.TextureLoader();
   private bodyObjects = new Map<string, THREE.Group>();
   private belt: BeltAsteroid3D[];
@@ -37,12 +36,16 @@ export class ThreeRenderer {
   private cometLine: { key: string; line: THREE.Line } | null = null;
   private tailLine: THREE.Line;
 
+  private get controls() {
+    return this.controlsHandle.controls;
+  }
+
   constructor(canvas: HTMLCanvasElement, orbitPaths: Vec3[][], belt: BeltAsteroid3D[], extent: number) {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     this.scene.background = new THREE.Color(BACKGROUND);
     this.camera = new THREE.PerspectiveCamera(CAMERA_FOV_DEG, 1, CAMERA_NEAR, CAMERA_FAR);
     this.camera.up.set(0, 0, 1);
-    this.controls = createControls(this.camera, canvas);
+    this.controlsHandle = createControls(this.camera, canvas);
 
     this.scene.add(new THREE.AmbientLight(AMBIENT_COLOR, AMBIENT_INTENSITY));
     // decay 0: stylized — planets stay lit at real distances.
@@ -138,7 +141,7 @@ export class ThreeRenderer {
   }
 
   dispose(): void {
-    this.controls.dispose();
+    this.controlsHandle.dispose();
     this.scene.traverse((obj) => {
       const mesh = obj as Partial<THREE.Mesh> & THREE.Object3D;
       if (mesh.geometry) mesh.geometry.dispose();
