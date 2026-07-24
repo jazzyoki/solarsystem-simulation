@@ -42,6 +42,9 @@ export function useSimulation(
     const camera = new Camera();
     const pointerInteraction = new PointerInteraction(camera);
     const canvas3d = canvas3dRef?.current ?? null;
+    // Both canvases fill this container; size from it, because whichever
+    // canvas is inactive is display:none and reports 0x0.
+    const sizeSource = canvas.parentElement ?? canvas;
 
     let currentMode: ViewMode = 'schematic';
     let asteroids = buildAsteroidBelt(
@@ -63,8 +66,8 @@ export function useSimulation(
     let fitted = false;
     const resize = () => {
       const dpr = window.devicePixelRatio || 1;
-      width = canvas.clientWidth;
-      height = canvas.clientHeight;
+      width = sizeSource.clientWidth;
+      height = sizeSource.clientHeight;
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -76,7 +79,7 @@ export function useSimulation(
       threeRenderer?.setSize(width, height, dpr);
     };
     const observer = new ResizeObserver(resize);
-    observer.observe(canvas);
+    observer.observe(sizeSource);
     resize();
 
     const onWheel = (e: WheelEvent) => {
