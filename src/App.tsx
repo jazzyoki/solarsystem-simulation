@@ -8,6 +8,7 @@ import { Toolbar } from './ui/Toolbar';
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const canvas3dRef = useRef<HTMLCanvasElement | null>(null);
   const {
     multiplier,
     paused,
@@ -23,11 +24,12 @@ export default function App() {
     setCometsEnabled,
     selectComet,
     jumpToPerihelion,
-  } = useSimulation(canvasRef);
+  } = useSimulation(canvasRef, canvas3dRef);
 
   return (
     <div className="app">
-      <canvas ref={canvasRef} className="scene" />
+      <canvas ref={canvasRef} className="scene" hidden={mode === 'threeD'} />
+      <canvas ref={canvas3dRef} className="scene" hidden={mode !== 'threeD'} />
       <Toolbar
         multiplier={multiplier}
         paused={paused}

@@ -45,6 +45,21 @@ export const COMET_PATH_WINDOW_AU = 35;
 export const COMET_PATH_SEGMENTS = 128;
 
 /**
+ * Maximum |true anomaly| drawn for a comet path: π for short-period comets,
+ * else clipped to the radius window (and, for hyperbolas, to just inside the
+ * asymptote).
+ */
+export function cometNuMax(spec: CometSpec, rWindowAu: number = COMET_PATH_WINDOW_AU): number {
+  const e = spec.eccentricity;
+  if (spec.cometClass === 'short') return Math.PI;
+  const semiLatus = spec.perihelionDistanceAu * (1 + e);
+  const cosAtWindow = (semiLatus / rWindowAu - 1) / e;
+  const nuAtWindow = Math.acos(Math.max(-1, Math.min(1, cosAtWindow)));
+  if (e < 1) return nuAtWindow;
+  return Math.min(Math.acos(-1 / e) - 1e-3, nuAtWindow);
+}
+
+/**
  * Sample a comet's orbit into a polyline of heliocentric AU points, symmetric
  * in true anomaly about perihelion (midpoint = perihelion). Short-period comets
  * sample the full ellipse; long-period and hyperbolic comets are clipped to a
@@ -59,19 +74,7 @@ export function cometPathAu(
   const semiLatus = spec.perihelionDistanceAu * (1 + e); // p = q(1 + e)
   const w = spec.perihelionLongitudeRad;
 
-  let nuMax: number;
-  if (spec.cometClass === 'short') {
-    nuMax = Math.PI;
-  } else if (e < 1) {
-    // Clip the arc where the radius reaches the window (or the whole ellipse).
-    const cosAtWindow = (semiLatus / rWindowAu - 1) / e;
-    nuMax = Math.acos(Math.max(-1, Math.min(1, cosAtWindow)));
-  } else {
-    const nuInf = Math.acos(-1 / e);
-    const cosAtWindow = (semiLatus / rWindowAu - 1) / e;
-    const nuAtWindow = Math.acos(Math.max(-1, Math.min(1, cosAtWindow)));
-    nuMax = Math.min(nuInf - 1e-3, nuAtWindow);
-  }
+  const nuMax = cometNuMax(spec, rWindowAu);
 
   const points: BodyPosition[] = [];
   for (let i = 0; i <= segments; i++) {

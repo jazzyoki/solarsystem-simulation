@@ -64,3 +64,9 @@ build or upload fails, the previously deployed release remains active.
 - Moon visibility and labels use a screen-coverage threshold so detail appears only when planets are large enough to see clearly.
 
 > Note: positions are the model's propagation (Keplerian in To Scale, stylized circular in Schematic), not a precise ephemeris.
+
+## Textures
+
+Planet, Sun, and Moon texture maps in `public/textures/` are from
+[Solar System Scope](https://www.solarsystemscope.com/textures/), licensed
+under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).

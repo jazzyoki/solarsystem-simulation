@@ -27,6 +27,10 @@ body,
   cursor: grabbing;
 }
 
+.scene[hidden] {
+  display: none;
+}
+
 .toolbar {
   position: absolute;
   top: 12px;

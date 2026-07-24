@@ -91,7 +91,7 @@ describe('Toolbar', () => {
     const props = renderToolbar({ mode: 'toScale' });
     const select = screen.getByRole('combobox', { name: 'Scale mode' }) as HTMLSelectElement;
     expect(select.value).toBe('toScale');
-    expect(select.querySelectorAll('option')).toHaveLength(2);
+    expect(select.querySelectorAll('option')).toHaveLength(3);
     fireEvent.change(select, { target: { value: 'schematic' } });
     expect(props.onSelectMode).toHaveBeenCalledWith('schematic');
   });
