@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-React + TypeScript + Vite canvas application that visualizes a stylized solar system: planet orbits, moons, an asteroid belt, and simulation-speed controls. Supports a **Schematic / To Scale** mode switcher (circular vs. real Keplerian elliptical orbits), real 2026-epoch starting positions, and a clickable date UI (date picker + "Today" button) that seeks and pauses the simulation.
+React + TypeScript + Vite canvas application that visualizes a stylized solar system: planet orbits, moons, an asteroid belt, and simulation-speed controls. Supports a **Schematic / To Scale** mode switcher (circular vs. real Keplerian elliptical orbits), a **3D view mode** (Three.js WebGL renderer with real orbital inclinations and orbit-around-target navigation), real 2026-epoch starting positions, and a clickable date UI (date picker + "Today" button) that seeks and pauses the simulation.
 
 ## Quick Commands
 
@@ -22,8 +22,13 @@ npm run build
 
 ## Directory Structure
 
-- `src/sim/` — pure orbital math and state. Circular orbits (`orbits.ts`), Keplerian elliptical orbits (`kepler.ts`, `ellipticalOrbit.ts`), planet/moon + J2000 element data and `AU_TO_WORLD` (`data.ts`), layout, `SimClock` (`clock.ts`), mode-aware `Simulation` (`simulation.ts`), date⇄simDays conversion (`formatDate.ts`), and shared types incl. `ScaleMode` (`types.ts`).
+- `src/sim/` — pure orbital math and state. Circular orbits (`orbits.ts`), Keplerian elliptical orbits (`kepler.ts`, `ellipticalOrbit.ts`), 3D transform and position computation for the 3D view mode (`orbit3d.ts`, lifting Keplerian 2D to ecliptic 3D via `Rz(Ω)·Rx(i)·Rz(ω)`, incl. comet 3D positions/paths), planet/moon + J2000 element data and `AU_TO_WORLD` (`data.ts`), layout, `SimClock` (`clock.ts`), mode-aware `Simulation` (`simulation.ts`), date⇄simDays conversion (`formatDate.ts`), and shared types incl. `ScaleMode` (`types.ts`).
 - `src/render/` — Canvas 2D rendering logic (`drawScene`, `Camera`, `visibility`, `asteroidBelt`); `drawScene` draws circle or rotated-ellipse orbit guides per mode.
+- `src/render3d/` — Three.js WebGL backend for the 3D view mode (`ThreeRenderer`,
+  `bodies` incl. textures + Saturn ring, `orbits`, `belt`, `controls` =
+  configured OrbitControls, `textures` registry). Loaded lazily via dynamic
+  import when the user first switches to 3D; disposed on switching away.
+  Three.js must not be imported outside this directory.
 - `src/hooks/` — React hooks that wire simulation + rendering into the UI (`useSimulation`: mode switch, `seekToDate`, `goToToday`, startup-on-today; `pointerInteraction`: mouse/touch pan+zoom).
 - `src/ui/` — `Toolbar` (speed, pause/resume, mode switcher) and `DateDisplay` (clickable date → native date picker + "Today" button) React components.
 - `docs/superpowers/specs/` — approved design specs.
@@ -38,6 +43,30 @@ Two motion models share one epoch (2026-01-01 00:00 UTC, `simDays = 0`) and one 
   - Mean anomaly advances linearly: `M(t) = M₀ + 2π·t / periodDays`.
   - `M₀` (epoch mean anomaly) is **derived from** `epochAngleRad` so both modes agree on each planet's longitude at `simDays = 0` — never store it separately.
   - Kepler's equation `M = E − e·sin(E)` is solved for eccentric anomaly `E` by Newton–Raphson (`kepler.ts`), then converted to true anomaly and a position on the ellipse oriented by `perihelionLongitudeRad` (ϖ). This yields variable angular velocity (fast at perihelion, slow at aphelion).
+
+### 3D view mode
+
+The toolbar mode switcher is `[ Schematic | To Scale | 3D ]` (`ViewMode =
+ScaleMode | 'threeD'` in `src/sim/types.ts`). The two 2D modes render to the
+2D canvas exactly as before; 3D renders to a second WebGL canvas (a canvas
+can hold only one context type).
+
+- Positions come from `snapshot3D()` / `orbitPaths3D()` / `cometBody3D()` /
+  `cometPath3D()` on `Simulation`, which lift the in-plane Keplerian solve
+  into ecliptic 3D via `orbitalPlaneToEcliptic` (`src/sim/orbit3d.ts`) using
+  per-body `inclinationRad` + `ascendingNodeRad` (J2000 / SBDB values in
+  `data.ts`; ω is always derived as ϖ − Ω, never stored).
+- Comets in 3D use their real inclination — no mean-anomaly negation; the 2D
+  modes keep using the `retrograde` flag. Selecting a comet in 3D stays in 3D
+  (only schematic force-switches to To Scale).
+- Moons are a deliberate stylization: ecliptic-parallel rings at the parent's
+  z (no per-moon elements). The belt gets per-asteroid random i ≤ 8° and Ω.
+- Navigation: Three `OrbitControls` (damping, min/max distance,
+  zoom-to-cursor, 1-finger rotate / 2-finger pinch-pan, double-click
+  re-centers the Sun).
+- No text labels in 3D (v1); bodies without a texture render flat-colored.
+- Textures: `public/textures/` (Solar System Scope, CC BY 4.0, attributed in
+  README). Meshes show their flat color until the map loads.
 
 ### Planet orbital elements (`PLANETS` in `src/sim/data.ts`)
 
