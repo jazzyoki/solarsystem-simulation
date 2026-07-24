@@ -22,14 +22,14 @@ npm run build
 
 ## Directory Structure
 
-- `src/sim/` — pure orbital math and state. Circular orbits (`orbits.ts`), Keplerian elliptical orbits (`kepler.ts`, `ellipticalOrbit.ts`), 3D transform and position computation for the 3D view mode (`orbit3d.ts`, lifting Keplerian 2D to ecliptic 3D via `Rz(Ω)·Rx(i)·Rz(ω)`, incl. comet 3D positions/paths), planet/moon + J2000 element data and `AU_TO_WORLD` (`data.ts`), layout, `SimClock` (`clock.ts`), mode-aware `Simulation` (`simulation.ts`), date⇄simDays conversion (`formatDate.ts`), and shared types incl. `ScaleMode` (`types.ts`).
+- `src/sim/` — pure orbital math and state. Circular orbits (`orbits.ts`), Keplerian elliptical orbits (`kepler.ts`, `ellipticalOrbit.ts`), 3D transform and position computation for the 3D view mode (`orbit3d.ts`, lifting Keplerian 2D to ecliptic 3D via `Rz(Ω)·Rx(i)·Rz(ω)`, incl. comet 3D positions/paths), planet/moon + J2000 element data and `AU_TO_WORLD` (`data.ts`), layout, `SimClock` (`clock.ts`), mode-aware `Simulation` (`simulation.ts`), date⇄simDays conversion (`formatDate.ts`), and shared types incl. `ScaleMode`, `ViewMode`, and `Vec3` (`types.ts`).
 - `src/render/` — Canvas 2D rendering logic (`drawScene`, `Camera`, `visibility`, `asteroidBelt`); `drawScene` draws circle or rotated-ellipse orbit guides per mode.
 - `src/render3d/` — Three.js WebGL backend for the 3D view mode (`ThreeRenderer`,
   `bodies` incl. textures + Saturn ring, `orbits`, `belt`, `controls` =
   configured OrbitControls, `textures` registry). Loaded lazily via dynamic
   import when the user first switches to 3D; disposed on switching away.
   Three.js must not be imported outside this directory.
-- `src/hooks/` — React hooks that wire simulation + rendering into the UI (`useSimulation`: mode switch, `seekToDate`, `goToToday`, startup-on-today; `pointerInteraction`: mouse/touch pan+zoom).
+- `src/hooks/` — React hooks that wire simulation + rendering into the UI (`useSimulation`: takes both canvas refs, drives one RAF loop that branches per `ViewMode`, lazy-loads `src/render3d` on first 3D switch, plus mode switch, `seekToDate`, `goToToday`, startup-on-today; `pointerInteraction`: mouse/touch pan+zoom for the 2D modes — 3D navigation is OrbitControls).
 - `src/ui/` — `Toolbar` (speed, pause/resume, mode switcher) and `DateDisplay` (clickable date → native date picker + "Today" button) React components.
 - `docs/superpowers/specs/` — approved design specs.
 - `docs/superpowers/plans/` — implementation plans.
@@ -67,27 +67,33 @@ can hold only one context type).
 - No text labels in 3D (v1); bodies without a texture render flat-colored.
 - Textures: `public/textures/` (Solar System Scope, CC BY 4.0, attributed in
   README). Meshes show their flat color until the map loads.
+- Sphere geometries are rotated `rotateX(π/2)` at creation (`bodies.ts`):
+  `THREE.SphereGeometry`'s texture poles sit on its +Y axis, but the scene is
+  z-up, so without the rotation every planet's poles lie in the ecliptic.
+- A failed `render3d` chunk load sets a `threeLoadFailed` latch (logged to
+  console); switching modes re-arms one retry — never retry per frame.
 
 ### Planet orbital elements (`PLANETS` in `src/sim/data.ts`)
 
-| Planet  | periodDays | epochAngleRad (°) | a (AU)      | e          | ϖ perihelion (°) |
-|---------|-----------:|------------------:|------------:|-----------:|-----------------:|
-| Mercury |    87.9691 |     242.262456669 |  0.38709927 | 0.20563593 |      77.45779628 |
-| Venus   |    224.701 |     277.021284224 |  0.72333566 | 0.00677672 |     131.60246718 |
-| Earth   |    365.256 |     100.209656729 |  1.00000261 | 0.01671123 |     102.93768193 |
-| Mars    |     686.98 |     283.796552295 |  1.52371034 |  0.0933941 |     336.05637041 |
-| Jupiter |   4332.589 |     108.967359114 |    5.202887 | 0.04838624 |      14.72847983 |
-| Saturn  |   10759.22 |       1.552905047 |  9.53667594 | 0.05386179 |      92.59887831 |
-| Uranus  |    30688.5 |      59.539656457 | 19.18916464 | 0.04725744 |      170.9542763 |
-| Neptune |      60182 |       0.995246704 | 30.06992276 | 0.00859048 |      44.96476227 |
+| Planet  | periodDays | epochAngleRad (°) | a (AU)      | e          | ϖ perihelion (°) | i (°)       | Ω node (°)   |
+|---------|-----------:|------------------:|------------:|-----------:|-----------------:|------------:|-------------:|
+| Mercury |    87.9691 |     242.262456669 |  0.38709927 | 0.20563593 |      77.45779628 |  7.00497902 |  48.33076593 |
+| Venus   |    224.701 |     277.021284224 |  0.72333566 | 0.00677672 |     131.60246718 |  3.39467605 |  76.67984255 |
+| Earth   |    365.256 |     100.209656729 |  1.00000261 | 0.01671123 |     102.93768193 | -0.00001531 |          0.0 |
+| Mars    |     686.98 |     283.796552295 |  1.52371034 |  0.0933941 |     336.05637041 |  1.84969142 |  49.55953891 |
+| Jupiter |   4332.589 |     108.967359114 |    5.202887 | 0.04838624 |      14.72847983 |  1.30439695 | 100.47390909 |
+| Saturn  |   10759.22 |       1.552905047 |  9.53667594 | 0.05386179 |      92.59887831 |  2.48599187 | 113.66242448 |
+| Uranus  |    30688.5 |      59.539656457 | 19.18916464 | 0.04725744 |      170.9542763 |  0.77263783 |  74.01692503 |
+| Neptune |      60182 |       0.995246704 | 30.06992276 | 0.00859048 |      44.96476227 |  1.77004347 | 131.78422574 |
+| Pluto   | 90921.851… |     302.961154488 | 39.5712615… | 0.2494484… |    225.218605930 | 17.14001206 | 110.30393684 |
 
-Angles are stored in radians (`× DEG_TO_RAD`); degrees shown here for readability. `epochAngleRad` comes from JPL Horizons heliocentric ecliptic longitudes at the 2026 epoch; `a`, `e`, `ϖ` are J2000 elements.
+Angles are stored in radians (`× DEG_TO_RAD`); degrees shown here for readability. `epochAngleRad` comes from JPL Horizons heliocentric ecliptic longitudes at the 2026 epoch; `a`, `e`, `ϖ`, `i`, `Ω` are J2000 elements (`i`/`Ω` are used only by the 3D mode; ω is always derived as ϖ − Ω, never stored). Pluto's full-precision values live in `data.ts`.
 
 Moons (`MOONS`) carry only `parent` + `periodDays` (negative = retrograde); all sit at zero epoch phase except Earth's Moon, which has an `epochAngleRad` from its JPL geocentric longitude. Moons always render as schematic circular orbits around their parent. The asteroid belt (`ASTEROID_BELT.getRadii`) computes its inner/outer radii per mode — from Mars aphelion / Jupiter perihelion in to-scale mode, from layout orbit radii in schematic.
 
 ### Comets
 
-A toolbar "Comets" toggle (off by default) reveals a `CometPicker` (`src/ui/CometPicker.tsx`) listing 15 famous comets (`COMETS` in `src/sim/data.ts`, typed as `CometSpec[]` in `src/sim/types.ts`). Selecting one focuses it: the hook auto-switches scale mode to **To Scale** (comet orbits are only meaningful at real scale), auto-frames the camera on the comet's `cometExtent` via a one-shot `pendingCometFrameRef`, and starts drawing the comet's path plus an exaggerated body (`bodyRadius` far larger than real, for visibility) with an anti-sunward tail and label, at the comet's real heliocentric position for the current sim date — it moves with the clock like any other body. A "Jump to perihelion" button seeks the clock to the comet's `perihelionTimeSimDays` and pauses (same seek-pauses convention as the date picker). Turning Comets off, or deselecting, clears the selection; `cometPath`/`cometBody` are `null` whenever nothing is selected or the toggle is off, so disabled comets have zero effect on existing rendering.
+A toolbar "Comets" toggle (off by default) reveals a `CometPicker` (`src/ui/CometPicker.tsx`) listing 15 famous comets (`COMETS` in `src/sim/data.ts`, typed as `CometSpec[]` in `src/sim/types.ts`). Selecting one focuses it: from Schematic the hook auto-switches to **To Scale** (comet orbits are only meaningful at real scale; in **3D** mode the selection stays in 3D, where the comet renders on its real inclined orbit), auto-frames the camera on the comet's `cometExtent` via a one-shot `pendingCometFrameRef`, and starts drawing the comet's path plus an exaggerated body (`bodyRadius` far larger than real, for visibility) with an anti-sunward tail and label, at the comet's real heliocentric position for the current sim date — it moves with the clock like any other body. A "Jump to perihelion" button seeks the clock to the comet's `perihelionTimeSimDays` and pauses (same seek-pauses convention as the date picker). Turning Comets off, or deselecting, clears the selection; `cometPath`/`cometBody` are `null` whenever nothing is selected or the toggle is off, so disabled comets have zero effect on existing rendering.
 
 Comets come in three classes (`CometSpec.cometClass`) across the 15 entries in `COMETS` (6 short-period, 3 long-period, 6 hyperbolic):
 
@@ -105,7 +111,7 @@ Orbit math lives entirely in `src/sim/`:
   - **Radius uses the polar conic form** `r = q(1+e) / (1 + e·cos(ν))` — anchored on the stored perihelion distance `q`, not on `a(1−e)` — so the comet marker always sits exactly on its own drawn path. This is a deliberate refinement: `a`, `e`, and `q` are independently-sourced, rounded JPL elements that don't satisfy `a(1−e) = q` to full precision, so computing radius from `a` instead of `q` would visibly detach the body from the path near perihelion.
   - The path sampler (`cometPathAu`) builds a polyline symmetric in true anomaly about perihelion, windowed per class as described above, using `COMET_PATH_SEGMENTS = 128` segments.
 
-**2D ecliptic simplification.** Like the existing planet model, comet orbits are flattened into the shared ecliptic plane: `perihelionLongitudeRad` stores the longitude of perihelion `ϖ = Ω + ω` directly (no separate inclination term applied to position), and high-inclination comets (`i > 90°`, e.g. Halley) are simply flagged `retrograde` to reverse their direction of travel along the ecliptic-projected path. This matches the planets' existing stylization — a schematic approximation of true 3D orbits, not ephemeris-grade — so comet paths, like planet orbits, should not be read as precise sky positions.
+**2D ecliptic simplification.** In the two 2D modes, comet orbits are flattened into the shared ecliptic plane: `perihelionLongitudeRad` stores the longitude of perihelion `ϖ = Ω + ω` directly (no separate inclination term applied to position), and high-inclination comets (`i > 90°`, e.g. Halley) are simply flagged `retrograde` to reverse their direction of travel along the ecliptic-projected path. This matches the planets' existing 2D stylization — a schematic approximation, not ephemeris-grade — so 2D comet paths should not be read as precise sky positions. The **3D mode** instead applies each comet's real `inclinationRad`/`ascendingNodeRad` via `cometPosition3dAu`/`cometPath3dAu` (`orbit3d.ts`) with no mean-anomaly negation — the `retrograde` flag drives 2D only.
 
 Orbital elements are sourced from the JPL Small-Body Database. Comet ISON is flagged `note: 'historical'` (it was destroyed during its 2013 perihelion passage and is included for its instructive hyperbolic/near-parabolic path, not as an object still observable today). Shoemaker-Levy 9 is intentionally excluded from `COMETS` — it had no independent heliocentric orbit, having been a fragmented body in Jovian orbit at the time of its 1994 impact.
 
@@ -114,7 +120,7 @@ Orbital elements are sourced from the JPL Small-Body Database. Comet ISON is fla
 - Keep `src/sim/` pure: it computes positions only; it knows nothing about the Canvas API, React, or screen state. Impure reads (e.g. `Date.now()`) belong in the hook, not in `src/sim/`.
 - Both scale modes must agree on each planet's longitude at `simDays = 0` — derive the epoch mean anomaly from the stored epoch longitude so switching modes never jumps an angle or resets the clock.
 - Seeking to a date (date picker or "Today") pauses the simulation; the user resumes manually. Startup, by contrast, seeds to today and keeps running.
-- Put visual concerns (opacity, colors, labels, belts) in `src/render/`.
-- Follow existing test style: mock `CanvasRenderingContext2D` for render tests, use `toBeCloseTo` for floating-point assertions.
+- Put visual concerns (opacity, colors, labels, belts) in `src/render/` (2D) or `src/render3d/` (3D). Three.js is imported only under `src/render3d/` (the hook reaches it solely via `import('../render3d')` plus type-only imports).
+- Follow existing test style: mock `CanvasRenderingContext2D` for render tests, use `toBeCloseTo` for floating-point assertions. Three.js geometry/material factories are unit-testable in jsdom; only `WebGLRenderer` (i.e. `ThreeRenderer` itself) is not — keep it a thin shell over tested pieces.
 - Commit each task independently. Do not rewrite public history.
 - If a task needs design changes, pause and update the spec before coding.
