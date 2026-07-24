@@ -18,9 +18,10 @@ entry in the mode switcher activates a WebGL (Three.js) renderer.
   Three.js WebGL renderer with real inclinations.
 - True 3D Keplerian orbits: planets, comets, and the asteroid belt tilted by
   their real inclination `i` and longitude of ascending node `Ω`.
-- Textured spheres for the Sun, planets, Earth's Moon, and Pluto/Charon, with a
-  Saturn ring; each falls back to its existing flat color until its texture
-  loads.
+- Textured spheres for the Sun, the 8 planets, and Earth's Moon, with a Saturn
+  ring; each falls back to its existing flat color until its texture loads.
+  Bodies without a sourced map (Pluto, Charon, other moons, comets) render in
+  their flat data.ts color.
 - Orbit-around-target camera with best-practice mouse and touch navigation.
 
 ## Non-Goals (v1)
@@ -30,6 +31,10 @@ entry in the mode switcher activates a WebGL (Three.js) renderer.
   around their parent (consistent with today's schematic moon rings).
 - Surface detail beyond diffuse maps (no normal/specular/night-lights/atmospheres).
 - Animated 2D↔3D camera transitions — the two renderers swap by canvas.
+- Text labels in the 3D view (2D modes keep their labels; 3D bodies are
+  identified by texture, color, and position).
+- Pluto/Charon textures — no reliably-sourced free 2k equirectangular maps;
+  they render as flat-color spheres in 3D (the standing fallback path).
 
 ## Tech Stack Context
 
@@ -49,8 +54,11 @@ New dependency: `three` + `@types/three`.
 
 ### Mode type
 
-`ScaleMode` becomes `'schematic' | 'toScale' | 'threeD'`. `useSimulation`
-branches on the mode to pick the render backend and (for 3D) the 3D snapshot.
+`ScaleMode` stays `'schematic' | 'toScale'`; a new `ViewMode = ScaleMode |
+'threeD'` is the UI-level mode. This keeps `Simulation` methods that branch on
+`ScaleMode` impossible to call with `'threeD'` by mistake. `useSimulation`
+branches on the `ViewMode` to pick the render backend and (for 3D) the 3D
+snapshot.
 
 ### Module layout
 
@@ -158,8 +166,8 @@ DOLLY_PAN }`.
 ## Textures & Assets
 
 - **Source:** Solar System Scope maps (CC-BY-4.0) or NASA imagery (public
-  domain) — equirectangular diffuse maps for Sun, 8 planets, Earth's Moon,
-  Pluto/Charon, plus a Saturn ring alpha map. ~1–2K resolution to bound bundle
+  domain) — equirectangular diffuse maps for the Sun, the 8 planets, and
+  Earth's Moon, plus a Saturn ring alpha map. ~2K resolution to bound bundle
   size. CC-BY source attributed in the README.
 - **Loading:** `textures.ts` registers one map per body, loaded via
   `THREE.TextureLoader`. Each mesh renders immediately in its existing flat

@@ -208,3 +208,72 @@ describe('COMETS', () => {
     }
   });
 });
+
+const EXPECTED_INCLINATION_DEG: Record<string, number> = {
+  Mercury: 7.00497902,
+  Venus: 3.39467605,
+  Earth: -0.00001531,
+  Mars: 1.84969142,
+  Jupiter: 1.30439695,
+  Saturn: 2.48599187,
+  Uranus: 0.77263783,
+  Neptune: 1.77004347,
+  Pluto: 17.14001206,
+};
+
+const EXPECTED_ASCENDING_NODE_DEG: Record<string, number> = {
+  Mercury: 48.33076593,
+  Venus: 76.67984255,
+  Earth: 0.0,
+  Mars: 49.55953891,
+  Jupiter: 100.47390909,
+  Saturn: 113.66242448,
+  Uranus: 74.01692503,
+  Neptune: 131.78422574,
+  Pluto: 110.30393684,
+};
+
+describe('3D orbital elements', () => {
+  it('stores the J2000 inclination for every planet', () => {
+    for (const p of PLANETS) {
+      expect(p.inclinationRad, p.name).toBeCloseTo(
+        EXPECTED_INCLINATION_DEG[p.name] * DEG_TO_RAD,
+        10,
+      );
+    }
+  });
+
+  it('stores the J2000 ascending node for every planet', () => {
+    for (const p of PLANETS) {
+      expect(p.ascendingNodeRad, p.name).toBeCloseTo(
+        EXPECTED_ASCENDING_NODE_DEG[p.name] * DEG_TO_RAD,
+        10,
+      );
+    }
+  });
+
+  it('gives every comet an inclination and ascending node', () => {
+    for (const c of COMETS) {
+      expect(Number.isFinite(c.inclinationRad), c.name).toBe(true);
+      expect(Number.isFinite(c.ascendingNodeRad), c.name).toBe(true);
+      expect(c.inclinationRad, c.name).toBeGreaterThanOrEqual(0);
+      expect(c.inclinationRad, c.name).toBeLessThan(Math.PI);
+    }
+  });
+
+  it('flags comets retrograde iff inclination exceeds 90 degrees', () => {
+    for (const c of COMETS) {
+      expect(c.retrograde, c.name).toBe(c.inclinationRad > Math.PI / 2);
+    }
+  });
+
+  it("keeps each comet's stored ϖ consistent with its stored Ω (ω = ϖ − Ω ≥ 0)", () => {
+    // data.ts writes ϖ as (Ω + ω)·DEG_TO_RAD; the stored node must be the
+    // first summand so the derived argument of perihelion stays sane.
+    for (const c of COMETS) {
+      const omega = c.perihelionLongitudeRad - c.ascendingNodeRad;
+      expect(omega, c.name).toBeGreaterThanOrEqual(0);
+      expect(omega, c.name).toBeLessThan(2 * Math.PI);
+    }
+  });
+});

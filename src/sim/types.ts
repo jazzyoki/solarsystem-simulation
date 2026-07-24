@@ -12,6 +12,10 @@ export interface PlanetSpec {
   eccentricity: number;
   /** J2000 longitude of perihelion (Omega + omega) in radians. */
   perihelionLongitudeRad: number;
+  /** J2000 orbital inclination to the ecliptic in radians. */
+  inclinationRad: number;
+  /** J2000 longitude of the ascending node (Omega) in radians. */
+  ascendingNodeRad: number;
   /** Display radius in world units (px at zoom 1). */
   bodyRadius: number;
   color: string;
@@ -45,6 +49,10 @@ export interface CometSpec {
   perihelionDistanceAu: number;
   /** Longitude of perihelion (Omega + omega) in radians. */
   perihelionLongitudeRad: number;
+  /** Orbital inclination to the ecliptic in radians. */
+  inclinationRad: number;
+  /** Longitude of the ascending node (Omega) in radians. */
+  ascendingNodeRad: number;
   /** Time of perihelion passage in simDays (Tp_JD - 2461041.5). */
   perihelionTimeSimDays: number;
   /** True for retrograde ecliptic motion (inclination > 90 deg). */
@@ -55,4 +63,10 @@ export interface CometSpec {
   color: string;
   /** Optional flag, e.g. "historical" for ISON. */
   note?: string;
+}
+
+export interface Vec3 {
+  x: number;
+  y: number;
+  z: number;
 }
