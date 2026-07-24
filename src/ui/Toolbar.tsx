@@ -1,5 +1,6 @@
 import type { SpeedMultiplier } from '../sim/clock';
 import type { ViewMode } from '../sim/types';
+import { timeScaleLabel } from './timeScale';
 
 export interface ToolbarProps {
   multiplier: SpeedMultiplier;
@@ -31,19 +32,6 @@ export function Toolbar({
 }: ToolbarProps) {
   return (
     <div className="toolbar">
-      <div className="speed-buttons">
-        {SPEEDS.map((speed) => (
-          <button
-            key={speed}
-            type="button"
-            className={speed === multiplier ? 'active' : ''}
-            aria-pressed={speed === multiplier}
-            onClick={() => onSelectSpeed(speed)}
-          >
-            {speed}x
-          </button>
-        ))}
-      </div>
       <select
         className="speed-select"
         aria-label="Speed"
@@ -56,23 +44,11 @@ export function Toolbar({
           </option>
         ))}
       </select>
+      <span className="time-scale">{timeScaleLabel(multiplier)}</span>
       <button type="button" aria-pressed={paused} onClick={onTogglePause}>
         {paused ? 'Resume' : 'Pause'}
       </button>
       <span className="toolbar-separator" aria-hidden="true" />
-      <div className="mode-buttons">
-        {MODES.map((m) => (
-          <button
-            key={m.value}
-            type="button"
-            className={m.value === mode ? 'active' : ''}
-            aria-pressed={m.value === mode}
-            onClick={() => onSelectMode(m.value)}
-          >
-            {m.label}
-          </button>
-        ))}
-      </div>
       <select
         className="mode-select"
         aria-label="Scale mode"
