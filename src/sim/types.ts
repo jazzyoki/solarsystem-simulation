@@ -1,5 +1,8 @@
 export type ScaleMode = 'schematic' | 'toScale';
 
+/** UI-level view mode: the two 2D scale modes plus the WebGL 3D view. */
+export type ViewMode = ScaleMode | 'threeD';
+
 export interface PlanetSpec {
   name: string;
   /** Sidereal orbital period in days. */

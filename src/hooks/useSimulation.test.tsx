@@ -228,4 +228,56 @@ describe('useSimulation pointer input', () => {
 
     expect(hookState.paused).toBe(true);
   });
+
+  it('accepts the threeD view mode', () => {
+    let hookState: any;
+
+    function TestThreeD() {
+      const canvasRef = useRef<HTMLCanvasElement | null>(null);
+      const canvas3dRef = useRef<HTMLCanvasElement | null>(null);
+      hookState = useSimulation(canvasRef, canvas3dRef);
+      return (
+        <>
+          <canvas ref={canvasRef} />
+          <canvas ref={canvas3dRef} />
+        </>
+      );
+    }
+
+    render(<TestThreeD />);
+
+    act(() => {
+      hookState.setMode('threeD');
+    });
+
+    expect(hookState.mode).toBe('threeD');
+  });
+
+  it('selecting a comet keeps 3D mode (no forced switch to to-scale)', () => {
+    let hookState: any;
+
+    function TestCometIn3D() {
+      const canvasRef = useRef<HTMLCanvasElement | null>(null);
+      const canvas3dRef = useRef<HTMLCanvasElement | null>(null);
+      hookState = useSimulation(canvasRef, canvas3dRef);
+      return (
+        <>
+          <canvas ref={canvasRef} />
+          <canvas ref={canvas3dRef} />
+        </>
+      );
+    }
+
+    render(<TestCometIn3D />);
+
+    act(() => {
+      hookState.setMode('threeD');
+    });
+    act(() => {
+      hookState.selectComet('Halley');
+    });
+
+    expect(hookState.mode).toBe('threeD');
+    expect(hookState.selectedComet).toBe('Halley');
+  });
 });
