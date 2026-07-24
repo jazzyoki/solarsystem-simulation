@@ -35,17 +35,37 @@ export class ThreeRenderer {
   private beltPoints: THREE.Points;
   private cometLine: { key: string; line: THREE.Line } | null = null;
   private tailLine: THREE.Line;
+  private overviewExtent: number;
+  private onFocusCleared?: () => void;
+  private requestedFocus: string | null = null;
+  private appliedFocus: string | null = null;
+  private lastFocusPos: THREE.Vector3 | null = null;
 
   private get controls() {
     return this.controlsHandle.controls;
   }
 
-  constructor(canvas: HTMLCanvasElement, orbitPaths: Vec3[][], belt: BeltAsteroid3D[], extent: number) {
+  constructor(
+    canvas: HTMLCanvasElement,
+    orbitPaths: Vec3[][],
+    belt: BeltAsteroid3D[],
+    extent: number,
+    onFocusCleared?: () => void,
+  ) {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     this.scene.background = new THREE.Color(BACKGROUND);
     this.camera = new THREE.PerspectiveCamera(CAMERA_FOV_DEG, 1, CAMERA_NEAR, CAMERA_FAR);
     this.camera.up.set(0, 0, 1);
-    this.controlsHandle = createControls(this.camera, canvas);
+    this.overviewExtent = extent;
+    this.onFocusCleared = onFocusCleared;
+    this.controlsHandle = createControls(this.camera, canvas, () => {
+      // A double-click recenters the Sun; if we were following a body, drop the
+      // follow and let the UI reset its dropdown to the placeholder.
+      if (this.appliedFocus !== null || this.requestedFocus !== null) {
+        this.requestedFocus = null;
+        this.onFocusCleared?.();
+      }
+    });
 
     this.scene.add(new THREE.AmbientLight(AMBIENT_COLOR, AMBIENT_INTENSITY));
     // decay 0: stylized — planets stay lit at real distances.
@@ -84,6 +104,44 @@ export class ThreeRenderer {
     this.camera.lookAt(0, 0, 0);
   }
 
+  /** Request the camera to frame + follow a body by name; null releases. */
+  setFocus(name: string | null): void {
+    this.requestedFocus = name;
+  }
+
+  /** Frames a body once (new focus) or follows it (continuing focus). */
+  private updateFocus(snap: Snapshot3D): void {
+    if (this.requestedFocus === this.appliedFocus) {
+      if (this.appliedFocus !== null && this.lastFocusPos !== null) {
+        const body = snap.bodies.find((b) => b.name === this.appliedFocus);
+        if (body) {
+          const pos = new THREE.Vector3(body.x, body.y, body.z);
+          const delta = pos.clone().sub(this.lastFocusPos);
+          this.controls.target.add(delta);
+          this.camera.position.add(delta);
+          this.lastFocusPos.copy(pos);
+        }
+      }
+      return;
+    }
+    // Transition to a new focus target.
+    if (this.requestedFocus === null) {
+      this.resetView(this.overviewExtent);
+      this.lastFocusPos = null;
+    } else {
+      const body = snap.bodies.find((b) => b.name === this.requestedFocus);
+      if (!body) return; // body absent this frame; retry next frame
+      const pos = new THREE.Vector3(body.x, body.y, body.z);
+      const dist = Math.max(this.controls.minDistance * 1.5, body.bodyRadius * 8);
+      this.controls.target.copy(pos);
+      // ~30° above the ecliptic, matching resetView's framing convention.
+      this.camera.position.set(pos.x, pos.y - dist * 0.86, pos.z + dist * 0.5);
+      this.camera.lookAt(pos);
+      this.lastFocusPos = pos.clone();
+    }
+    this.appliedFocus = this.requestedFocus;
+  }
+
   sync(snap: Snapshot3D, cometPath: CometPath3DRender | null, cometKey: string | null): void {
     const seen = new Set<string>();
     let comet: BodySnapshot3D | null = null;
@@ -119,6 +177,8 @@ export class ThreeRenderer {
     }
 
     updateBeltPositions(this.beltPoints, this.belt, snap.simDays);
+
+    this.updateFocus(snap);
   }
 
   private updateTail(comet: BodySnapshot3D): void {
