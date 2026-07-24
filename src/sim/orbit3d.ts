@@ -1,6 +1,13 @@
 import { eccentricAnomalyFromMean, trueAnomalyFromEccentric } from './kepler';
 import { epochMeanAnomaly, type OrbitalElements } from './ellipticalOrbit';
-import type { Vec3 } from './types';
+import { hyperbolicAnomalyFromMean, trueAnomalyFromHyperbolic } from './hyperbolicOrbit';
+import {
+  cometNuMax,
+  COMET_PATH_SEGMENTS,
+  COMET_PATH_WINDOW_AU,
+  meanMotion,
+} from './cometOrbit';
+import type { CometSpec, Vec3 } from './types';
 
 const TWO_PI = Math.PI * 2;
 
@@ -71,6 +78,45 @@ export function ellipticalPath3dAu(
     const nu = (TWO_PI * i) / segments;
     const r = semiLatus / (1 + e * Math.cos(nu));
     points.push(orbitalPlaneToEcliptic(el, r, nu));
+  }
+  return points;
+}
+
+/**
+ * Heliocentric 3D comet position in AU at simDays. Unlike the 2D model, the
+ * mean anomaly is NOT negated for retrograde comets — with the real
+ * inclination applied, i > 90° produces retrograde ecliptic motion naturally.
+ */
+export function cometPosition3dAu(spec: CometSpec, simDays: number): Vec3 {
+  const e = spec.eccentricity;
+  const M = meanMotion(spec.semiMajorAxisAu) * (simDays - spec.perihelionTimeSimDays);
+  let trueAnomaly: number;
+  if (e < 1) {
+    const E = eccentricAnomalyFromMean(M, e);
+    trueAnomaly = trueAnomalyFromEccentric(E, e);
+  } else {
+    const H = hyperbolicAnomalyFromMean(M, e);
+    trueAnomaly = trueAnomalyFromHyperbolic(H, e);
+  }
+  // Same q-anchored polar conic as the 2D model (see cometOrbit.ts).
+  const radiusAu = (spec.perihelionDistanceAu * (1 + e)) / (1 + e * Math.cos(trueAnomaly));
+  return orbitalPlaneToEcliptic(spec, radiusAu, trueAnomaly);
+}
+
+/** 3D counterpart of cometPathAu: same ν window, rotated into the ecliptic frame. */
+export function cometPath3dAu(
+  spec: CometSpec,
+  rWindowAu: number = COMET_PATH_WINDOW_AU,
+  segments: number = COMET_PATH_SEGMENTS,
+): Vec3[] {
+  const e = spec.eccentricity;
+  const semiLatus = spec.perihelionDistanceAu * (1 + e);
+  const nuMax = cometNuMax(spec, rWindowAu);
+  const points: Vec3[] = [];
+  for (let i = 0; i <= segments; i++) {
+    const nu = -nuMax + (2 * nuMax * i) / segments;
+    const r = semiLatus / (1 + e * Math.cos(nu));
+    points.push(orbitalPlaneToEcliptic(spec, r, nu));
   }
   return points;
 }

@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { ellipticalPositionAu } from './ellipticalOrbit';
+import { COMETS } from './data';
+import { cometPositionAu, COMET_PATH_SEGMENTS, COMET_PATH_WINDOW_AU } from './cometOrbit';
 import {
+  cometPath3dAu,
+  cometPosition3dAu,
   ellipticalPath3dAu,
   ellipticalPosition3dAu,
   ORBIT_PATH_SEGMENTS,
@@ -92,5 +96,58 @@ describe('ellipticalPath3dAu', () => {
       TILTED.semiMajorAxisAu * (1 - TILTED.eccentricity),
       10,
     );
+  });
+});
+
+const halley = COMETS.find((c) => c.name === 'Halley')!;
+const encke = COMETS.find((c) => c.name === 'Encke')!;
+const borisov = COMETS.find((c) => c.name === 'Borisov')!;
+
+describe('cometPosition3dAu', () => {
+  it('matches the 2D heliocentric distance for every comet (orientation cannot change r)', () => {
+    for (const c of COMETS) {
+      const t = c.perihelionTimeSimDays + 30;
+      const p2 = cometPositionAu(c, t);
+      const p3 = cometPosition3dAu(c, t);
+      expect(Math.hypot(p3.x, p3.y, p3.z), c.name).toBeCloseTo(Math.hypot(p2.x, p2.y), 8);
+    }
+  });
+
+  it('sits at perihelion distance q at Tp', () => {
+    const p = cometPosition3dAu(halley, halley.perihelionTimeSimDays);
+    expect(Math.hypot(p.x, p.y, p.z)).toBeCloseTo(halley.perihelionDistanceAu, 8);
+  });
+
+  it('moves Halley retrograde in the ecliptic projection via its real inclination', () => {
+    const a = cometPosition3dAu(halley, halley.perihelionTimeSimDays);
+    const b = cometPosition3dAu(halley, halley.perihelionTimeSimDays + 5);
+    // z-component of a×b: negative = clockwise from ecliptic north = retrograde.
+    expect(a.x * b.y - a.y * b.x).toBeLessThan(0);
+  });
+
+  it('moves Encke prograde', () => {
+    const a = cometPosition3dAu(encke, encke.perihelionTimeSimDays);
+    const b = cometPosition3dAu(encke, encke.perihelionTimeSimDays + 5);
+    expect(a.x * b.y - a.y * b.x).toBeGreaterThan(0);
+  });
+});
+
+describe('cometPath3dAu', () => {
+  it('returns segments+1 points with perihelion at the midpoint', () => {
+    const pts = cometPath3dAu(halley);
+    expect(pts).toHaveLength(COMET_PATH_SEGMENTS + 1);
+    const mid = pts[COMET_PATH_SEGMENTS / 2];
+    expect(Math.hypot(mid.x, mid.y, mid.z)).toBeCloseTo(halley.perihelionDistanceAu, 8);
+  });
+
+  it('clips unbound paths to the radius window', () => {
+    for (const p of cometPath3dAu(borisov)) {
+      expect(Math.hypot(p.x, p.y, p.z)).toBeLessThanOrEqual(COMET_PATH_WINDOW_AU + 1e-6);
+    }
+  });
+
+  it('tilts a high-inclination path out of the ecliptic', () => {
+    const maxZ = Math.max(...cometPath3dAu(halley).map((p) => Math.abs(p.z)));
+    expect(maxZ).toBeGreaterThan(1); // Halley: i = 162°, aphelion ≈ 35 AU
   });
 });
