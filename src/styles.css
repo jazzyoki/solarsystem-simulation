@@ -133,13 +133,37 @@ body,
 }
 
 .comet-picker {
-  position: absolute;
-  top: 52px;
-  left: 12px;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
+}
+
+.picker-column {
+  position: absolute;
+  top: 52px;
+  left: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.planet-picker {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.planet-select {
+  background: #1b2340;
+  color: #cfd8ff;
+  border: 1px solid #34406e;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font: 13px system-ui, sans-serif;
+  cursor: pointer;
+  color-scheme: dark;
 }
 
 .comet-select {
