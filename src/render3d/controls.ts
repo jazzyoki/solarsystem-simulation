@@ -16,7 +16,11 @@ export interface ControlsHandle {
  * Double-click re-centers the focus on the Sun. The returned handle must be
  * disposed to remove all listeners and resources.
  */
-export function createControls(camera: THREE.PerspectiveCamera, canvas: HTMLElement): ControlsHandle {
+export function createControls(
+  camera: THREE.PerspectiveCamera,
+  canvas: HTMLElement,
+  onDoubleClick?: () => void,
+): ControlsHandle {
   const controls = new OrbitControls(camera, canvas);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
@@ -27,6 +31,7 @@ export function createControls(camera: THREE.PerspectiveCamera, canvas: HTMLElem
   controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
   const onDblClick = () => {
     controls.target.set(0, 0, 0);
+    onDoubleClick?.();
   };
   canvas.addEventListener('dblclick', onDblClick);
   return {

@@ -1,10 +1,13 @@
 import { useRef } from 'react';
 import { useSimulation } from './hooks/useSimulation';
-import { COMETS } from './sim/data';
+import { COMETS, PLANETS } from './sim/data';
 import { dateInputToSimDays } from './sim/formatDate';
 import { CometPicker } from './ui/CometPicker';
 import { DateDisplay } from './ui/DateDisplay';
+import { PlanetPicker } from './ui/PlanetPicker';
 import { Toolbar } from './ui/Toolbar';
+
+const FOCUSABLE_BODIES = ['Sun', ...PLANETS.map((p) => p.name)];
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -24,6 +27,8 @@ export default function App() {
     setCometsEnabled,
     selectComet,
     jumpToPerihelion,
+    focusedBody,
+    selectBody,
   } = useSimulation(canvasRef, canvas3dRef);
 
   return (
@@ -40,14 +45,19 @@ export default function App() {
         cometsEnabled={cometsEnabled}
         onToggleComets={() => setCometsEnabled(!cometsEnabled)}
       />
-      {cometsEnabled && (
-        <CometPicker
-          comets={COMETS.map((c) => ({ name: c.name, designation: c.designation, note: c.note }))}
-          selected={selectedComet}
-          onSelect={selectComet}
-          onJumpToPerihelion={jumpToPerihelion}
-        />
-      )}
+      <div className="picker-column">
+        {mode === 'threeD' && (
+          <PlanetPicker planets={FOCUSABLE_BODIES} selected={focusedBody} onSelect={selectBody} />
+        )}
+        {cometsEnabled && (
+          <CometPicker
+            comets={COMETS.map((c) => ({ name: c.name, designation: c.designation, note: c.note }))}
+            selected={selectedComet}
+            onSelect={selectComet}
+            onJumpToPerihelion={jumpToPerihelion}
+          />
+        )}
+      </div>
       <DateDisplay
         date={date}
         onSelectDate={(value) => seekToDate(dateInputToSimDays(value))}

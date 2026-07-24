@@ -66,17 +66,9 @@ body,
   background: #34406e;
 }
 
-/* Button-group wrappers generate no box, so the buttons stay direct flex
-   participants of .toolbar — desktop layout is identical to before. */
-.speed-buttons,
-.mode-buttons {
-  display: contents;
-}
-
-/* Mobile-only dropdowns: hidden by default; the media query reveals them. */
 .speed-select,
 .mode-select {
-  display: none;
+  display: inline-block;
   background: #1b2340;
   color: #cfd8ff;
   border: 1px solid #34406e;
@@ -85,6 +77,12 @@ body,
   font: 13px system-ui, sans-serif;
   cursor: pointer;
   color-scheme: dark;
+}
+
+.time-scale {
+  color: #9fb0e0;
+  font: 12px system-ui, sans-serif;
+  white-space: nowrap;
 }
 
 .date-controls {
@@ -135,13 +133,37 @@ body,
 }
 
 .comet-picker {
-  position: absolute;
-  top: 52px;
-  left: 12px;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
+}
+
+.picker-column {
+  position: absolute;
+  top: 52px;
+  left: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.planet-picker {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.planet-select {
+  background: #1b2340;
+  color: #cfd8ff;
+  border: 1px solid #34406e;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font: 13px system-ui, sans-serif;
+  cursor: pointer;
+  color-scheme: dark;
 }
 
 .comet-select {
@@ -170,16 +192,8 @@ body,
 }
 
 @media (max-width: 640px) {
-  /* Collapse the button groups (and their separators) in favor of dropdowns. */
-  .speed-buttons,
-  .mode-buttons,
   .toolbar-separator {
     display: none;
-  }
-
-  .speed-select,
-  .mode-select {
-    display: inline-block;
   }
 
   /* Move the date + Today controls out of the toolbar's way, to the

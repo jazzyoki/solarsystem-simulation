@@ -23,10 +23,12 @@ export function useSimulation(
   const [date, setDate] = useState(() => formatSimDate(timestampToSimDays(Date.now())));
   const [cometsEnabled, setCometsEnabledState] = useState(false);
   const [selectedComet, setSelectedComet] = useState<string | null>(null);
+  const [focusedBody, setFocusedBody] = useState<string | null>(null);
   const simRef = useRef<Simulation | null>(null);
   const applyModeRef = useRef<(m: ViewMode) => void>(() => {});
   const cometsEnabledRef = useRef(false);
   const selectedCometRef = useRef<string | null>(null);
+  const focusedBodyRef = useRef<string | null>(null);
   const pendingCometFrameRef = useRef<string | null>(null);
   const pendingResetFrameRef = useRef(false);
 
@@ -132,6 +134,8 @@ export function useSimulation(
         pendingMode = null;
         threeLoadFailed = false;
         if (currentMode !== 'threeD') {
+          focusedBodyRef.current = null;
+          setFocusedBody(null);
           asteroids = buildAsteroidBelt(
             sim.layout,
             ASTEROID_BELT.seed,
@@ -155,6 +159,10 @@ export function useSimulation(
                 sim.orbitPaths3D(),
                 belt,
                 sim.extent('toScale'),
+                () => {
+                  focusedBodyRef.current = null;
+                  setFocusedBody(null);
+                },
               );
               threeRenderer.setSize(width, height, window.devicePixelRatio || 1);
               threeLoading = false;
@@ -169,12 +177,17 @@ export function useSimulation(
           const frameComet3d = pendingCometFrameRef.current;
           if (frameComet3d !== null) {
             pendingCometFrameRef.current = null;
-            const extent = sim.cometExtent(frameComet3d);
-            if (extent > 0) threeRenderer.resetView(extent);
+            // A planet follow owns the camera; don't let comet framing fight it.
+            if (focusedBodyRef.current === null) {
+              const extent = sim.cometExtent(frameComet3d);
+              if (extent > 0) threeRenderer.resetView(extent);
+            }
           }
           if (pendingResetFrameRef.current) {
             pendingResetFrameRef.current = false;
-            threeRenderer.resetView(sim.extent('toScale'));
+            if (focusedBodyRef.current === null) {
+              threeRenderer.resetView(sim.extent('toScale'));
+            }
           }
           const snap3 = sim.snapshot3D();
           const cometName =
@@ -187,6 +200,7 @@ export function useSimulation(
             const body3 = sim.cometBody3D(cometName);
             if (body3) snap3.bodies.push(body3);
           }
+          threeRenderer.setFocus(focusedBodyRef.current);
           threeRenderer.sync(snap3, path3, cometName);
           threeRenderer.render();
         }
@@ -309,9 +323,16 @@ export function useSimulation(
     if (comet) seekToDate(comet.perihelionTimeSimDays);
   };
 
+  const selectBody = (name: string | null) => {
+    const focus = name === 'Sun' ? null : name;
+    focusedBodyRef.current = focus;
+    setFocusedBody(focus);
+  };
+
   return {
     multiplier, paused, mode, date, setMultiplier, togglePause, setMode,
     seekToDate, goToToday,
     cometsEnabled, selectedComet, setCometsEnabled, selectComet, jumpToPerihelion,
+    focusedBody, selectBody,
   };
 }
