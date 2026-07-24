@@ -1,9 +1,11 @@
+// @vitest-environment node
+
 import { existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { BODY_TEXTURE_FILES, SATURN_RING_FILE, saturnRingUrl, textureUrl } from './textures';
 
-const texturesDir = join(process.cwd(), 'public/textures/');
+const texturesDir = fileURLToPath(new URL('../../public/textures/', import.meta.url));
 
 describe('texture registry', () => {
   it('maps the sun, the 8 planets, and the Moon', () => {
