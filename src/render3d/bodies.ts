@@ -76,6 +76,9 @@ export function createBodyObject(body: BodySnapshot3D, loader: THREE.TextureLoad
     SPHERE_WIDTH_SEGMENTS,
     SPHERE_HEIGHT_SEGMENTS,
   );
+  // SphereGeometry's texture poles sit on its +Y axis, but this scene is
+  // z-up (ecliptic = XY plane): rotate so the poles align with world +Z.
+  geometry.rotateX(Math.PI / 2);
   const unlit = body.kind === 'sun' || body.kind === 'comet';
   const material: BodyMaterial = unlit
     ? new THREE.MeshBasicMaterial({ color: body.color })

@@ -30,6 +30,16 @@ describe('createBodyObject', () => {
     expect(mesh.material).toBeInstanceOf(THREE.MeshStandardMaterial);
   });
 
+  it('orients the sphere texture poles along world +z (ecliptic north)', () => {
+    // SphereGeometry's native pole axis is +Y; in this z-up world the
+    // geometry must be rotated so its top pole (vertex 0) sits at +Z.
+    const mesh = createBodyObject(mars, new THREE.TextureLoader()).children[0] as THREE.Mesh;
+    const pos = mesh.geometry.getAttribute('position');
+    expect(pos.getX(0)).toBeCloseTo(0, 6);
+    expect(pos.getY(0)).toBeCloseTo(0, 6);
+    expect(pos.getZ(0)).toBeCloseTo(5, 6);
+  });
+
   it('gives Saturn a ring child', () => {
     const group = createBodyObject(saturn, new THREE.TextureLoader());
     expect(group.children.length).toBe(2);
