@@ -177,12 +177,17 @@ export function useSimulation(
           const frameComet3d = pendingCometFrameRef.current;
           if (frameComet3d !== null) {
             pendingCometFrameRef.current = null;
-            const extent = sim.cometExtent(frameComet3d);
-            if (extent > 0) threeRenderer.resetView(extent);
+            // A planet follow owns the camera; don't let comet framing fight it.
+            if (focusedBodyRef.current === null) {
+              const extent = sim.cometExtent(frameComet3d);
+              if (extent > 0) threeRenderer.resetView(extent);
+            }
           }
           if (pendingResetFrameRef.current) {
             pendingResetFrameRef.current = false;
-            threeRenderer.resetView(sim.extent('toScale'));
+            if (focusedBodyRef.current === null) {
+              threeRenderer.resetView(sim.extent('toScale'));
+            }
           }
           const snap3 = sim.snapshot3D();
           const cometName =
