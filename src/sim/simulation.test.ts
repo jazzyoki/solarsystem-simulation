@@ -202,3 +202,77 @@ describe('Simulation comets', () => {
     expect(sim.cometExtent('Halley')).toBeGreaterThan(0);
   });
 });
+
+describe('Simulation 3D', () => {
+  it('snapshot3D reports 109 bodies, each with a finite z', () => {
+    const bodies = new Simulation().snapshot3D().bodies;
+    expect(bodies).toHaveLength(109);
+    for (const b of bodies) expect(Number.isFinite(b.z), b.name).toBe(true);
+  });
+
+  it('keeps the sun at the 3D origin', () => {
+    const sun = new Simulation().snapshot3D().bodies[0];
+    expect(sun).toMatchObject({ name: 'Sun', x: 0, y: 0, z: 0, kind: 'sun' });
+  });
+
+  it('agrees with the 2D to-scale mode on heliocentric distance per planet', () => {
+    const sim = new Simulation();
+    const flat = sim.snapshot('toScale').bodies;
+    const solid = sim.snapshot3D().bodies;
+    for (const name of Object.keys(EXPECTED_PLANET_EPOCH_ANGLES_DEG)) {
+      const f = flat.find((b) => b.name === name)!;
+      const s = solid.find((b) => b.name === name)!;
+      expect(Math.hypot(s.x, s.y, s.z), name).toBeCloseTo(Math.hypot(f.x, f.y), 6);
+    }
+  });
+
+  it("keeps Earth's |z| tiny and lets Pluto leave the ecliptic", () => {
+    const sim = new Simulation();
+    let plutoMaxZ = 0;
+    for (let k = 0; k < 8; k++) {
+      sim.clock.setSimDays((90921.85 * k) / 8);
+      const bodies = sim.snapshot3D().bodies;
+      expect(Math.abs(bodies.find((b) => b.name === 'Earth')!.z)).toBeLessThan(0.01);
+      plutoMaxZ = Math.max(plutoMaxZ, Math.abs(bodies.find((b) => b.name === 'Pluto')!.z));
+    }
+    expect(plutoMaxZ).toBeGreaterThan(100); // 17° tilt at ~40 AU × 150 world units/AU
+  });
+
+  it('places every moon at its parent z (ecliptic-parallel rings)', () => {
+    const bodies = new Simulation().snapshot3D().bodies;
+    const byName = new Map(bodies.map((b) => [b.name, b]));
+    const moon = byName.get('Moon')!;
+    expect(moon.z).toBe(byName.get('Earth')!.z);
+    expect(byName.get('Charon')!.z).toBe(byName.get('Pluto')!.z);
+  });
+
+  it('orbitPaths3D returns 9 loops of 256 world-unit points', () => {
+    const paths = new Simulation().orbitPaths3D();
+    expect(paths).toHaveLength(9);
+    for (const path of paths) expect(path).toHaveLength(256);
+    // Earth's loop stays ~1 AU from the origin in world units.
+    const earth = paths[2];
+    for (const p of earth) {
+      const r = Math.hypot(p.x, p.y, p.z);
+      expect(r).toBeGreaterThan(140);
+      expect(r).toBeLessThan(160);
+    }
+  });
+
+  it('cometBody3D sits at q·AU_TO_WORLD from the sun at Tp', () => {
+    const sim = new Simulation();
+    const halley = COMETS.find((c) => c.name === 'Halley')!;
+    sim.clock.setSimDays(halley.perihelionTimeSimDays);
+    const body = sim.cometBody3D('Halley')!;
+    expect(body.kind).toBe('comet');
+    expect(Math.hypot(body.x, body.y, body.z)).toBeCloseTo(0.575 * 150, 0);
+  });
+
+  it('cometPath3D keeps the green/red bound/unbound cue and returns null for unknowns', () => {
+    const sim = new Simulation();
+    expect(sim.cometPath3D('Halley')!.color).toBe('green');
+    expect(sim.cometPath3D('Borisov')!.color).toBe('red');
+    expect(sim.cometPath3D('Nope')).toBeNull();
+    expect(sim.cometBody3D('Nope')).toBeNull();
+  });
+});
