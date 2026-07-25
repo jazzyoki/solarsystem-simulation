@@ -29,3 +29,33 @@ describe('speedMultiplierLabel', () => {
     expect(speedMultiplierLabel(94_608_000)).toBe('94,608,000×');
   });
 });
+
+describe('timeScaleLabel arithmetic', () => {
+  // Seconds-per-unit table, independent of SCALE_LABELS' own wording.
+  // A month is 30 days and a year is 365 days by project convention.
+  const UNIT_SECONDS: Record<string, number> = {
+    min: 60,
+    h: 3600,
+    month: 2_592_000, // 30 days
+    year: 31_536_000, // 365 days
+  };
+
+  it('re-derives every multiplier from its label text, catching mismatched labels', () => {
+    const labelPattern = /^1s = (\d+) (min|h|months?|years?)$/;
+
+    for (const multiplier of SPEED_MULTIPLIERS) {
+      const label = timeScaleLabel(multiplier);
+      const match = label.match(labelPattern);
+      expect(match, `label "${label}" for ${multiplier} did not match expected format`).not.toBeNull();
+
+      const [, countText, rawUnit] = match!;
+      const count = Number(countText);
+      const unit = rawUnit.replace(/s$/, ''); // normalize 'months'/'years' plurals
+      const unitSeconds = UNIT_SECONDS[unit];
+      expect(unitSeconds, `unknown unit "${unit}" in label "${label}"`).toBeDefined();
+
+      const derivedMultiplier = count * unitSeconds;
+      expect(derivedMultiplier).toBe(multiplier);
+    }
+  });
+});

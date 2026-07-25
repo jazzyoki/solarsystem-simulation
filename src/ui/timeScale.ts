@@ -22,7 +22,7 @@ export function timeScaleLabel(multiplier: SpeedMultiplier): string {
   return SCALE_LABELS[multiplier];
 }
 
-/** Raw speed factor for a speed, e.g. '86,400x' (U+00D7 multiplication sign). */
+/** Raw speed factor for a speed, e.g. '86,400×' (U+00D7 multiplication sign). */
 export function speedMultiplierLabel(multiplier: SpeedMultiplier): string {
   return `${multiplier.toLocaleString('en-US')}×`;
 }
