@@ -3,7 +3,7 @@ import { buildAsteroidBelt } from '../render/asteroidBelt';
 import { Camera } from '../render/camera';
 import { drawScene } from '../render/drawScene';
 import { PointerInteraction } from './pointerInteraction';
-import type { SpeedMultiplier } from '../sim/clock';
+import { DEFAULT_SPEED_MULTIPLIER, type SpeedMultiplier } from '../sim/clock';
 import { ASTEROID_BELT, COMETS } from '../sim/data';
 import { formatSimDate, timestampToSimDays } from '../sim/formatDate';
 import { Simulation } from '../sim/simulation';
@@ -17,7 +17,7 @@ export function useSimulation(
   canvasRef: React.RefObject<HTMLCanvasElement | null>,
   canvas3dRef?: React.RefObject<HTMLCanvasElement | null>,
 ) {
-  const [multiplier, setMultiplierState] = useState<SpeedMultiplier>(1);
+  const [multiplier, setMultiplierState] = useState<SpeedMultiplier>(DEFAULT_SPEED_MULTIPLIER);
   const [paused, setPaused] = useState(false);
   const [mode, setModeState] = useState<ViewMode>('schematic');
   const [date, setDate] = useState(() => formatSimDate(timestampToSimDays(Date.now())));

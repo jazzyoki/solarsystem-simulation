@@ -1,15 +1,23 @@
 import { describe, expect, it } from 'vitest';
-import { SimClock } from './clock';
+import { DEFAULT_SPEED_MULTIPLIER, SimClock, SPEED_MULTIPLIERS } from './clock';
 
 describe('SimClock', () => {
-  it('starts at day 0, 1x, unpaused', () => {
+  it('starts at day 0, at the default speed, unpaused', () => {
     const c = new SimClock();
     expect(c.simDays).toBe(0);
-    expect(c.multiplier).toBe(1);
+    expect(c.multiplier).toBe(86_400);
+    expect(DEFAULT_SPEED_MULTIPLIER).toBe(86_400);
     expect(c.paused).toBe(false);
   });
 
-  it('advances 1 day per real second at 1x for frame dt below the cap', () => {
+  it('treats the multiplier as simulated seconds per real second', () => {
+    const c = new SimClock();
+    c.setMultiplier(1_200);
+    c.advance(0.1); // 0.1 real s x 1200 = 120 simulated seconds
+    expect(c.simDays * 86_400).toBeCloseTo(120, 6);
+  });
+
+  it('advances 1 day per real second at 86,400x for frame dt below the cap', () => {
     const c = new SimClock();
     c.advance(0.1);
     expect(c.simDays).toBeCloseTo(0.1, 10);
@@ -17,18 +25,26 @@ describe('SimClock', () => {
 
   it('advances proportionally to the multiplier for frame dt below the cap', () => {
     const c = new SimClock();
-    c.setMultiplier(0.5);
+    c.setMultiplier(1_200);
     c.advance(0.1);
-    expect(c.simDays).toBeCloseTo(0.05, 10);
-    c.setMultiplier(10);
+    expect(c.simDays).toBeCloseTo(0.0013889, 7);
+    c.setMultiplier(43_200);
     c.advance(0.1);
-    expect(c.simDays).toBeCloseTo(1.05, 10);
-    c.setMultiplier(100);
+    expect(c.simDays).toBeCloseTo(0.0513889, 7);
+    c.setMultiplier(2_592_000);
     c.advance(0.1);
-    expect(c.simDays).toBeCloseTo(11.05, 10);
-    c.setMultiplier(1000);
+    expect(c.simDays).toBeCloseTo(3.0513889, 7);
+    c.setMultiplier(94_608_000);
     c.advance(0.016);
-    expect(c.simDays).toBeCloseTo(27.05, 10);
+    expect(c.simDays).toBeCloseTo(20.5713889, 7);
+  });
+
+  it('exposes the nine speed options in ascending order', () => {
+    expect(SPEED_MULTIPLIERS).toEqual([
+      1_200, 3_600, 21_600, 43_200, 86_400,
+      2_592_000, 7_776_000, 31_536_000, 94_608_000,
+    ]);
+    expect(SPEED_MULTIPLIERS).toContain(DEFAULT_SPEED_MULTIPLIER);
   });
 
   it('does not advance while paused', () => {
