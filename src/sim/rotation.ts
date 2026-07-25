@@ -14,5 +14,5 @@ const TWO_PI = Math.PI * 2;
 export function axialSpinRad(simDays: number, rotationPeriodDays: number): number {
   if (rotationPeriodDays === 0) return 0;
   const angle = ((simDays / rotationPeriodDays) % 1) * TWO_PI;
-  return angle < 0 ? angle + TWO_PI : angle;
+  return angle === 0 ? 0 : angle < 0 ? angle + TWO_PI : angle;
 }

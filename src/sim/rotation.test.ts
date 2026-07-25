@@ -36,4 +36,9 @@ describe('axialSpinRad', () => {
   it('returns 0 for a zero period instead of NaN', () => {
     expect(axialSpinRad(123, 0)).toBe(0);
   });
+
+  it('returns positive zero, not -0, for negative whole-turn inputs', () => {
+    expect(Object.is(axialSpinRad(-1, 1), 0)).toBe(true);
+    expect(Object.is(axialSpinRad(-10, 0.5), 0)).toBe(true);
+  });
 });

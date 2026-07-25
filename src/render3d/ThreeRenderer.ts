@@ -161,6 +161,9 @@ export class ThreeRenderer {
         obj = createBodyObject(body, this.loader);
         this.bodyObjects.set(body.name, obj);
         this.scene.add(obj);
+        // Seed the orientation even when spin is disabled: a body created while
+        // frozen would otherwise sit at angle 0 rather than the date's angle.
+        applyBodySpin(obj, body.spinRad);
       }
       obj.visible = true;
       obj.position.set(body.x, body.y, body.z);
