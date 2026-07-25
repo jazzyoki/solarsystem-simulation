@@ -14,11 +14,17 @@ import {
 
 const layout = computeLayout(PLANETS, MOONS);
 
+const DEG_TO_RAD = Math.PI / 180;
+const MARS_OBLIQUITY_RAD = 25.19 * DEG_TO_RAD;
+const SATURN_OBLIQUITY_RAD = 26.73 * DEG_TO_RAD;
+
 const mars: BodySnapshot3D = {
   name: 'Mars', x: 0, y: 0, z: 0, bodyRadius: 5, color: '#c1440e', kind: 'planet',
+  spinRad: 0, obliquityRad: MARS_OBLIQUITY_RAD,
 };
 const saturn: BodySnapshot3D = {
   name: 'Saturn', x: 0, y: 0, z: 0, bodyRadius: 12, color: '#e0c38b', kind: 'planet',
+  spinRad: 0, obliquityRad: SATURN_OBLIQUITY_RAD,
 };
 
 describe('createBodyObject', () => {
@@ -50,6 +56,7 @@ describe('createBodyObject', () => {
   it('uses an unlit material for sun and comet bodies', () => {
     const comet: BodySnapshot3D = {
       name: 'Halley', x: 0, y: 0, z: 0, bodyRadius: 3, color: '#dbeeff', kind: 'comet',
+      spinRad: 0, obliquityRad: 0,
     };
     const mesh = createBodyObject(comet, new THREE.TextureLoader()).children[0] as THREE.Mesh;
     expect(mesh.material).toBeInstanceOf(THREE.MeshBasicMaterial);

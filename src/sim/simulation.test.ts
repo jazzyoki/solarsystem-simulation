@@ -275,4 +275,44 @@ describe('Simulation 3D', () => {
     expect(sim.cometPath3D('Nope')).toBeNull();
     expect(sim.cometBody3D('Nope')).toBeNull();
   });
+
+  it('snapshot3D reports zero spin for every body at the epoch', () => {
+    for (const body of new Simulation().snapshot3D().bodies) {
+      expect(body.spinRad, body.name).toBe(0);
+    }
+  });
+
+  it('snapshot3D advances each body spin at its own sidereal rate', () => {
+    const sim = new Simulation();
+    const earthSpec = PLANETS.find((p) => p.name === 'Earth')!;
+    advanceDays(sim, earthSpec.rotationPeriodDays / 4);
+    const bodies = sim.snapshot3D().bodies;
+    const earth = bodies.find((b) => b.name === 'Earth')!;
+    const jupiter = bodies.find((b) => b.name === 'Jupiter')!;
+    expect(earth.spinRad).toBeCloseTo(Math.PI / 2, 6);
+    // Jupiter turns ~2.4x faster, so a shared/global angle would fail here.
+    expect(jupiter.spinRad).not.toBeCloseTo(earth.spinRad, 3);
+  });
+
+  it('snapshot3D tilts planets and leaves moons unspun and untilted', () => {
+    const sim = new Simulation();
+    advanceDays(sim, 10);
+    const bodies = sim.snapshot3D().bodies;
+    expect(bodies.find((b) => b.name === 'Uranus')!.obliquityRad).toBeCloseTo(
+      97.77 * DEG_TO_RAD,
+      12,
+    );
+    expect(bodies.find((b) => b.name === 'Sun')!.spinRad).toBeGreaterThan(0);
+    const moon = bodies.find((b) => b.name === 'Moon')!;
+    expect(moon.spinRad).toBe(0);
+    expect(moon.obliquityRad).toBe(0);
+  });
+
+  it('cometBody3D reports no spin or tilt', () => {
+    const sim = new Simulation();
+    advanceDays(sim, 10);
+    const body = sim.cometBody3D(COMETS[0].name)!;
+    expect(body.spinRad).toBe(0);
+    expect(body.obliquityRad).toBe(0);
+  });
 });
