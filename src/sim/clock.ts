@@ -22,6 +22,17 @@ export type SpeedMultiplier = (typeof SPEED_MULTIPLIERS)[number];
 /** 1s = 24 h — one simulated day per real second. */
 export const DEFAULT_SPEED_MULTIPLIER: SpeedMultiplier = 86_400;
 
+/**
+ * Axial rotation in the 3D view stays legible only below 1 simulated month per
+ * real second. Above it a fast rotator strobes: Jupiter would spin 72 turns a
+ * second at 1s = 1 month, versus 2.4 at 1s = 24 h.
+ */
+export const AXIAL_SPIN_MAX_MULTIPLIER = 2_592_000;
+
+export function axialSpinEnabled(multiplier: SpeedMultiplier): boolean {
+  return multiplier < AXIAL_SPIN_MAX_MULTIPLIER;
+}
+
 const SECONDS_PER_DAY = 86_400;
 
 /** Max real seconds consumed per advance() call (tab-switch guard). */
