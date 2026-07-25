@@ -4,7 +4,7 @@ import { Toolbar, type ToolbarProps } from './Toolbar';
 
 function renderToolbar(overrides: Partial<ToolbarProps> = {}) {
   const props: ToolbarProps = {
-    multiplier: 1,
+    multiplier: 86_400,
     paused: false,
     mode: 'schematic',
     onSelectSpeed: vi.fn(),
@@ -20,12 +20,12 @@ function renderToolbar(overrides: Partial<ToolbarProps> = {}) {
 
 describe('Toolbar', () => {
   it('renders a speed dropdown reflecting the multiplier and fires onSelectSpeed on change', () => {
-    const props = renderToolbar({ multiplier: 100 });
+    const props = renderToolbar({ multiplier: 2_592_000 });
     const select = screen.getByRole('combobox', { name: 'Speed' }) as HTMLSelectElement;
-    expect(select.value).toBe('100');
-    expect(select.querySelectorAll('option')).toHaveLength(5);
-    fireEvent.change(select, { target: { value: '0.5' } });
-    expect(props.onSelectSpeed).toHaveBeenCalledWith(0.5);
+    expect(select.value).toBe('2592000');
+    expect(select.querySelectorAll('option')).toHaveLength(9);
+    fireEvent.change(select, { target: { value: '1200' } });
+    expect(props.onSelectSpeed).toHaveBeenCalledWith(1_200);
   });
 
   it('renders a mode dropdown reflecting the mode and fires onSelectMode on change', () => {
@@ -37,9 +37,11 @@ describe('Toolbar', () => {
     expect(props.onSelectMode).toHaveBeenCalledWith('schematic');
   });
 
-  it('shows the time-scale label for the current multiplier', () => {
-    renderToolbar({ multiplier: 10 });
-    expect(screen.getByText('1s = 10 days')).toBeTruthy();
+  it('shows the human-readable scale in the dropdown and the factor beside it', () => {
+    renderToolbar({ multiplier: 31_536_000 });
+    const select = screen.getByRole('combobox', { name: 'Speed' }) as HTMLSelectElement;
+    expect(select.selectedOptions[0].textContent).toBe('1s = 1 year');
+    expect(screen.getByText('31,536,000×')).toBeTruthy();
   });
 
   it('shows Resume while paused and toggles on click', () => {

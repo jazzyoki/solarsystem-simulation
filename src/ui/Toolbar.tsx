@@ -1,6 +1,6 @@
-import type { SpeedMultiplier } from '../sim/clock';
+import { SPEED_MULTIPLIERS, type SpeedMultiplier } from '../sim/clock';
 import type { ViewMode } from '../sim/types';
-import { timeScaleLabel } from './timeScale';
+import { speedMultiplierLabel, timeScaleLabel } from './timeScale';
 
 export interface ToolbarProps {
   multiplier: SpeedMultiplier;
@@ -13,7 +13,6 @@ export interface ToolbarProps {
   onToggleComets: () => void;
 }
 
-const SPEEDS: SpeedMultiplier[] = [0.5, 1, 10, 100, 1000];
 const MODES: { value: ViewMode; label: string }[] = [
   { value: 'schematic', label: 'Schematic' },
   { value: 'toScale', label: 'To Scale' },
@@ -38,13 +37,13 @@ export function Toolbar({
         value={multiplier}
         onChange={(e) => onSelectSpeed(Number(e.target.value) as SpeedMultiplier)}
       >
-        {SPEEDS.map((speed) => (
+        {SPEED_MULTIPLIERS.map((speed) => (
           <option key={speed} value={speed}>
-            {speed}x
+            {timeScaleLabel(speed)}
           </option>
         ))}
       </select>
-      <span className="time-scale">{timeScaleLabel(multiplier)}</span>
+      <span className="time-scale">{speedMultiplierLabel(multiplier)}</span>
       <button type="button" aria-pressed={paused} onClick={onTogglePause}>
         {paused ? 'Resume' : 'Pause'}
       </button>
