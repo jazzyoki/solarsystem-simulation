@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { BodySnapshot3D, CometPath3DRender, Snapshot3D } from '../sim/simulation';
 import type { Vec3 } from '../sim/types';
-import { createBodyObject } from './bodies';
+import { applyBodySpin, createBodyObject } from './bodies';
 import { createBeltPoints, updateBeltPositions, type BeltAsteroid3D } from './belt';
 import { createControls, type ControlsHandle } from './controls';
 import { createCometPathLine, createOrbitLine } from './orbits';
@@ -40,6 +40,7 @@ export class ThreeRenderer {
   private requestedFocus: string | null = null;
   private appliedFocus: string | null = null;
   private lastFocusPos: THREE.Vector3 | null = null;
+  private spinEnabled = true;
 
   private get controls() {
     return this.controlsHandle.controls;
@@ -109,6 +110,14 @@ export class ThreeRenderer {
     this.requestedFocus = name;
   }
 
+  /**
+   * Axial spin is only legible at slower speeds. When disabled, sync() skips
+   * the write, so each body freezes at its last angle instead of resetting.
+   */
+  setSpinEnabled(enabled: boolean): void {
+    this.spinEnabled = enabled;
+  }
+
   /** Frames a body once (new focus) or follows it (continuing focus). */
   private updateFocus(snap: Snapshot3D): void {
     if (this.requestedFocus === this.appliedFocus) {
@@ -155,6 +164,7 @@ export class ThreeRenderer {
       }
       obj.visible = true;
       obj.position.set(body.x, body.y, body.z);
+      if (this.spinEnabled) applyBodySpin(obj, body.spinRad);
       if (body.kind === 'comet') comet = body;
     }
     for (const [name, obj] of this.bodyObjects) {
