@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { computeLayout } from '../sim/layout';
 import { ASTEROID_BELT, MOONS, PLANETS } from '../sim/data';
 import type { BodySnapshot3D } from '../sim/simulation';
-import { createBodyObject } from './bodies';
+import { applyBodySpin, createBodyObject } from './bodies';
 import { createCometPathLine, createOrbitLine } from './orbits';
 import {
   BELT_MAX_INCLINATION_RAD,
@@ -14,11 +14,17 @@ import {
 
 const layout = computeLayout(PLANETS, MOONS);
 
+const DEG_TO_RAD = Math.PI / 180;
+const MARS_OBLIQUITY_RAD = 25.19 * DEG_TO_RAD;
+const SATURN_OBLIQUITY_RAD = 26.73 * DEG_TO_RAD;
+
 const mars: BodySnapshot3D = {
   name: 'Mars', x: 0, y: 0, z: 0, bodyRadius: 5, color: '#c1440e', kind: 'planet',
+  spinRad: 0, obliquityRad: MARS_OBLIQUITY_RAD,
 };
 const saturn: BodySnapshot3D = {
   name: 'Saturn', x: 0, y: 0, z: 0, bodyRadius: 12, color: '#e0c38b', kind: 'planet',
+  spinRad: 0, obliquityRad: SATURN_OBLIQUITY_RAD,
 };
 
 describe('createBodyObject', () => {
@@ -50,9 +56,31 @@ describe('createBodyObject', () => {
   it('uses an unlit material for sun and comet bodies', () => {
     const comet: BodySnapshot3D = {
       name: 'Halley', x: 0, y: 0, z: 0, bodyRadius: 3, color: '#dbeeff', kind: 'comet',
+      spinRad: 0, obliquityRad: 0,
     };
     const mesh = createBodyObject(comet, new THREE.TextureLoader()).children[0] as THREE.Mesh;
     expect(mesh.material).toBeInstanceOf(THREE.MeshBasicMaterial);
+  });
+
+  it('tilts the group by the body obliquity', () => {
+    const group = createBodyObject(mars, new THREE.TextureLoader());
+    expect(group.rotation.x).toBeCloseTo(MARS_OBLIQUITY_RAD, 12);
+  });
+
+  it('carries Saturn ring tilt on the group rather than the ring itself', () => {
+    const group = createBodyObject(saturn, new THREE.TextureLoader());
+    expect(group.rotation.x).toBeCloseTo(SATURN_OBLIQUITY_RAD, 12);
+    const ring = group.children[1] as THREE.Mesh;
+    expect(ring.rotation.x).toBe(0);
+  });
+
+  it('applyBodySpin turns the sphere, leaving the ring and the tilt alone', () => {
+    const group = createBodyObject(saturn, new THREE.TextureLoader());
+    applyBodySpin(group, Math.PI / 3);
+    expect(group.children[0].rotation.z).toBeCloseTo(Math.PI / 3, 12);
+    // Rings orbit; they do not rotate with the planet.
+    expect(group.children[1].rotation.z).toBe(0);
+    expect(group.rotation.x).toBeCloseTo(SATURN_OBLIQUITY_RAD, 12);
   });
 });
 

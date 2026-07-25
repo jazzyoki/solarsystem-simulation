@@ -6,7 +6,13 @@ const DEG_TO_RAD = Math.PI / 180;
 /** World units per astronomical unit in to-scale mode. */
 export const AU_TO_WORLD = 150;
 
-export const SUN = { name: 'Sun', bodyRadius: 22, color: '#ffcc33' } as const;
+export const SUN = {
+  name: 'Sun',
+  bodyRadius: 22,
+  color: '#ffcc33',
+  rotationPeriodDays: 25.38,
+  obliquityRad: 7.25 * DEG_TO_RAD,
+} as const;
 export const MOON_STYLE = { bodyRadius: 1.5, color: '#bbbbbb' } as const;
 
 export const ASTEROID_BELT = {
@@ -44,6 +50,8 @@ export const PLANETS: PlanetSpec[] = [
     perihelionLongitudeRad: 77.45779628 * DEG_TO_RAD,
     inclinationRad: 7.00497902 * DEG_TO_RAD,
     ascendingNodeRad: 48.33076593 * DEG_TO_RAD,
+    rotationPeriodDays: 58.646,
+    obliquityRad: 0.034 * DEG_TO_RAD,
     bodyRadius: 4,
     color: '#9c8e82',
   },
@@ -56,6 +64,9 @@ export const PLANETS: PlanetSpec[] = [
     perihelionLongitudeRad: 131.60246718 * DEG_TO_RAD,
     inclinationRad: 3.39467605 * DEG_TO_RAD,
     ascendingNodeRad: 76.67984255 * DEG_TO_RAD,
+    // retrograde, expressed as obliquity > 90 deg with a positive period
+    rotationPeriodDays: 243.025,
+    obliquityRad: 177.36 * DEG_TO_RAD,
     bodyRadius: 6,
     color: '#e3bb76',
   },
@@ -68,6 +79,8 @@ export const PLANETS: PlanetSpec[] = [
     perihelionLongitudeRad: 102.93768193 * DEG_TO_RAD,
     inclinationRad: -0.00001531 * DEG_TO_RAD,
     ascendingNodeRad: 0.0 * DEG_TO_RAD,
+    rotationPeriodDays: 0.99727,
+    obliquityRad: 23.44 * DEG_TO_RAD,
     bodyRadius: 6,
     color: '#4d9de0',
   },
@@ -80,6 +93,8 @@ export const PLANETS: PlanetSpec[] = [
     perihelionLongitudeRad: 336.05637041 * DEG_TO_RAD,
     inclinationRad: 1.84969142 * DEG_TO_RAD,
     ascendingNodeRad: 49.55953891 * DEG_TO_RAD,
+    rotationPeriodDays: 1.02596,
+    obliquityRad: 25.19 * DEG_TO_RAD,
     bodyRadius: 5,
     color: '#c1440e',
   },
@@ -92,6 +107,8 @@ export const PLANETS: PlanetSpec[] = [
     perihelionLongitudeRad: 14.72847983 * DEG_TO_RAD,
     inclinationRad: 1.30439695 * DEG_TO_RAD,
     ascendingNodeRad: 100.47390909 * DEG_TO_RAD,
+    rotationPeriodDays: 0.41354,
+    obliquityRad: 3.13 * DEG_TO_RAD,
     bodyRadius: 14,
     color: '#d8a25e',
   },
@@ -104,6 +121,8 @@ export const PLANETS: PlanetSpec[] = [
     perihelionLongitudeRad: 92.59887831 * DEG_TO_RAD,
     inclinationRad: 2.48599187 * DEG_TO_RAD,
     ascendingNodeRad: 113.66242448 * DEG_TO_RAD,
+    rotationPeriodDays: 0.44401,
+    obliquityRad: 26.73 * DEG_TO_RAD,
     bodyRadius: 12,
     color: '#e0c38b',
   },
@@ -116,6 +135,9 @@ export const PLANETS: PlanetSpec[] = [
     perihelionLongitudeRad: 170.9542763 * DEG_TO_RAD,
     inclinationRad: 0.77263783 * DEG_TO_RAD,
     ascendingNodeRad: 74.01692503 * DEG_TO_RAD,
+    // retrograde
+    rotationPeriodDays: 0.71833,
+    obliquityRad: 97.77 * DEG_TO_RAD,
     bodyRadius: 9,
     color: '#7dd3d8',
   },
@@ -128,6 +150,8 @@ export const PLANETS: PlanetSpec[] = [
     perihelionLongitudeRad: 44.96476227 * DEG_TO_RAD,
     inclinationRad: 1.77004347 * DEG_TO_RAD,
     ascendingNodeRad: 131.78422574 * DEG_TO_RAD,
+    rotationPeriodDays: 0.67125,
+    obliquityRad: 28.32 * DEG_TO_RAD,
     bodyRadius: 9,
     color: '#5b7fd4',
   },
@@ -141,6 +165,9 @@ export const PLANETS: PlanetSpec[] = [
     perihelionLongitudeRad: 225.218605929714 * DEG_TO_RAD,
     inclinationRad: 17.14001206 * DEG_TO_RAD,
     ascendingNodeRad: 110.30393684 * DEG_TO_RAD,
+    // retrograde
+    rotationPeriodDays: 6.38723,
+    obliquityRad: 122.53 * DEG_TO_RAD,
     bodyRadius: 4,
     color: '#b8a99a',
   },

@@ -35,28 +35,30 @@ export default function App() {
     <div className="app">
       <canvas ref={canvasRef} className="scene" hidden={mode === 'threeD'} />
       <canvas ref={canvas3dRef} className="scene" hidden={mode !== 'threeD'} />
-      <Toolbar
-        multiplier={multiplier}
-        paused={paused}
-        mode={mode}
-        onSelectSpeed={setMultiplier}
-        onTogglePause={togglePause}
-        onSelectMode={setMode}
-        cometsEnabled={cometsEnabled}
-        onToggleComets={() => setCometsEnabled(!cometsEnabled)}
-      />
-      <div className="picker-column">
-        {mode === 'threeD' && (
-          <PlanetPicker planets={FOCUSABLE_BODIES} selected={focusedBody} onSelect={selectBody} />
-        )}
-        {cometsEnabled && (
-          <CometPicker
-            comets={COMETS.map((c) => ({ name: c.name, designation: c.designation, note: c.note }))}
-            selected={selectedComet}
-            onSelect={selectComet}
-            onJumpToPerihelion={jumpToPerihelion}
-          />
-        )}
+      <div className="left-stack">
+        <Toolbar
+          multiplier={multiplier}
+          paused={paused}
+          mode={mode}
+          onSelectSpeed={setMultiplier}
+          onTogglePause={togglePause}
+          onSelectMode={setMode}
+          cometsEnabled={cometsEnabled}
+          onToggleComets={() => setCometsEnabled(!cometsEnabled)}
+        />
+        <div className="picker-column">
+          {mode === 'threeD' && (
+            <PlanetPicker planets={FOCUSABLE_BODIES} selected={focusedBody} onSelect={selectBody} />
+          )}
+          {cometsEnabled && (
+            <CometPicker
+              comets={COMETS.map((c) => ({ name: c.name, designation: c.designation, note: c.note }))}
+              selected={selectedComet}
+              onSelect={selectComet}
+              onJumpToPerihelion={jumpToPerihelion}
+            />
+          )}
+        </div>
       </div>
       <DateDisplay
         date={date}

@@ -3,7 +3,7 @@ import { buildAsteroidBelt } from '../render/asteroidBelt';
 import { Camera } from '../render/camera';
 import { drawScene } from '../render/drawScene';
 import { PointerInteraction } from './pointerInteraction';
-import { DEFAULT_SPEED_MULTIPLIER, type SpeedMultiplier } from '../sim/clock';
+import { axialSpinEnabled, DEFAULT_SPEED_MULTIPLIER, type SpeedMultiplier } from '../sim/clock';
 import { ASTEROID_BELT, COMETS } from '../sim/data';
 import { formatSimDate, timestampToSimDays } from '../sim/formatDate';
 import { Simulation } from '../sim/simulation';
@@ -200,6 +200,7 @@ export function useSimulation(
             const body3 = sim.cometBody3D(cometName);
             if (body3) snap3.bodies.push(body3);
           }
+          threeRenderer.setSpinEnabled(axialSpinEnabled(sim.clock.multiplier));
           threeRenderer.setFocus(focusedBodyRef.current);
           threeRenderer.sync(snap3, path3, cometName);
           threeRenderer.render();

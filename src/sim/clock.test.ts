@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_SPEED_MULTIPLIER, SimClock, SPEED_MULTIPLIERS } from './clock';
+import {
+  AXIAL_SPIN_MAX_MULTIPLIER,
+  axialSpinEnabled,
+  DEFAULT_SPEED_MULTIPLIER,
+  SimClock,
+  SPEED_MULTIPLIERS,
+} from './clock';
 
 describe('SimClock', () => {
   it('starts at day 0, at the default speed, unpaused', () => {
@@ -69,5 +75,22 @@ describe('SimClock', () => {
     expect(c.simDays).toBe(789);
     c.setSimDays(-1);
     expect(c.simDays).toBe(-1);
+  });
+});
+
+describe('axialSpinEnabled', () => {
+  it('enables spin for the five scales below 1s = 1 month and disables the rest', () => {
+    expect(SPEED_MULTIPLIERS.filter((m) => axialSpinEnabled(m))).toEqual([
+      1_200, 3_600, 21_600, 43_200, 86_400,
+    ]);
+    expect(SPEED_MULTIPLIERS.filter((m) => !axialSpinEnabled(m))).toEqual([
+      2_592_000, 7_776_000, 31_536_000, 94_608_000,
+    ]);
+  });
+
+  it('puts the boundary between 1s = 24 h and 1s = 1 month', () => {
+    expect(AXIAL_SPIN_MAX_MULTIPLIER).toBe(2_592_000);
+    expect(axialSpinEnabled(86_400)).toBe(true);
+    expect(axialSpinEnabled(2_592_000)).toBe(false);
   });
 });

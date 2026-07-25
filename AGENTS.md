@@ -70,6 +70,16 @@ can hold only one context type).
 - Sphere geometries are rotated `rotateX(π/2)` at creation (`bodies.ts`):
   `THREE.SphereGeometry`'s texture poles sit on its +Y axis, but the scene is
   z-up, so without the rotation every planet's poles lie in the ecliptic.
+- Axial rotation: each body group carries its `obliquityRad` as `rotation.x`
+  (set once at creation), and `applyBodySpin` writes the sphere child's
+  `rotation.z` per frame. **`rotationPeriodDays` is always positive** —
+  retrograde spin is encoded as `obliquityRad > π/2` (IAU convention), never as
+  a negative period, or the two cancel. The angle comes from
+  `axialSpinRad(simDays, period)` (`src/sim/rotation.ts`), a pure function of
+  `simDays`, so seeking a date reproduces orientations exactly. Spin is applied
+  only while `axialSpinEnabled(multiplier)` is true (below `1s = 1 month`);
+  above it the write is skipped so bodies freeze rather than reset. Saturn's
+  ring is a sibling of the sphere: tilted with the group, never spun.
 - A failed `render3d` chunk load sets a `threeLoadFailed` latch (logged to
   console); switching modes re-arms one retry — never retry per frame.
 

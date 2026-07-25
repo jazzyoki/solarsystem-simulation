@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ASTEROID_BELT, AU_TO_WORLD, COMETS, MOONS, PLANETS } from './data';
+import { ASTEROID_BELT, AU_TO_WORLD, COMETS, MOONS, PLANETS, SUN } from './data';
 import { computeLayout } from './layout';
 
 const EXPECTED_MOON_COUNTS: Record<string, number> = {
@@ -63,6 +63,33 @@ const EXPECTED_PERIHELION_LONGITUDE_DEG: Record<string, number> = {
   Neptune: 44.96476227,
   Pluto: 225.218605929714,
 };
+
+const EXPECTED_ROTATION_PERIOD_DAYS: Record<string, number> = {
+  Mercury: 58.646,
+  Venus: 243.025,
+  Earth: 0.99727,
+  Mars: 1.02596,
+  Jupiter: 0.41354,
+  Saturn: 0.44401,
+  Uranus: 0.71833,
+  Neptune: 0.67125,
+  Pluto: 6.38723,
+};
+
+const EXPECTED_OBLIQUITY_DEG: Record<string, number> = {
+  Mercury: 0.034,
+  Venus: 177.36,
+  Earth: 23.44,
+  Mars: 25.19,
+  Jupiter: 3.13,
+  Saturn: 26.73,
+  Uranus: 97.77,
+  Neptune: 28.32,
+  Pluto: 122.53,
+};
+
+/** The only bodies whose spin is retrograde — encoded as obliquity > 90 deg. */
+const RETROGRADE_SPINNERS = ['Venus', 'Uranus', 'Pluto'];
 
 describe('data tables', () => {
   it('has 8 planets followed by dwarf planet Pluto in solar order', () => {
@@ -179,6 +206,39 @@ describe('data tables', () => {
     expect(inner).toBeGreaterThan(mars.semiMajorAxisAu * (1 + mars.eccentricity) * AU_TO_WORLD);
     expect(outer).toBeLessThan(jupiter.semiMajorAxisAu * (1 - jupiter.eccentricity) * AU_TO_WORLD);
     expect(outer).toBeGreaterThan(inner);
+  });
+
+  it('stores each planet sidereal rotation period', () => {
+    for (const [name, days] of Object.entries(EXPECTED_ROTATION_PERIOD_DAYS)) {
+      expect(PLANETS.find((p) => p.name === name)!.rotationPeriodDays, name).toBeCloseTo(days, 10);
+    }
+  });
+
+  it('stores each planet axial tilt', () => {
+    for (const [name, deg] of Object.entries(EXPECTED_OBLIQUITY_DEG)) {
+      expect(PLANETS.find((p) => p.name === name)!.obliquityRad, name).toBeCloseTo(
+        deg * DEG_TO_RAD,
+        12,
+      );
+    }
+  });
+
+  it('keeps every rotation period positive, so retrograde spin lives in obliquity alone', () => {
+    for (const p of PLANETS) {
+      expect(Number.isFinite(p.rotationPeriodDays), p.name).toBe(true);
+      expect(p.rotationPeriodDays, p.name).toBeGreaterThan(0);
+    }
+    expect(SUN.rotationPeriodDays).toBeGreaterThan(0);
+  });
+
+  it('keeps obliquity within [0, pi], retrograde for exactly Venus, Uranus and Pluto', () => {
+    for (const p of PLANETS) {
+      expect(p.obliquityRad, p.name).toBeGreaterThanOrEqual(0);
+      expect(p.obliquityRad, p.name).toBeLessThanOrEqual(Math.PI);
+      expect(p.obliquityRad > Math.PI / 2, p.name).toBe(RETROGRADE_SPINNERS.includes(p.name));
+    }
+    expect(SUN.obliquityRad).toBeCloseTo(7.25 * DEG_TO_RAD, 12);
+    expect(SUN.rotationPeriodDays).toBeCloseTo(25.38, 10);
   });
 });
 

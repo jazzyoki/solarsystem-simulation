@@ -9,6 +9,7 @@ import {
 } from './ellipticalOrbit';
 import { computeLayout, type Layout } from './layout';
 import { angleAt, orbitalPosition } from './orbits';
+import { axialSpinRad } from './rotation';
 import {
   cometPath3dAu,
   cometPosition3dAu,
@@ -39,6 +40,10 @@ export interface CometPathRender {
 
 export interface BodySnapshot3D extends BodySnapshot {
   z: number;
+  /** Axial spin angle in radians at this snapshot's simDays; 0 for moons and comets. */
+  spinRad: number;
+  /** Axial tilt in radians; 0 for moons and comets. */
+  obliquityRad: number;
 }
 
 export interface Snapshot3D {
@@ -193,7 +198,17 @@ export class Simulation {
   snapshot3D(): Snapshot3D {
     const { simDays } = this.clock;
     const bodies: BodySnapshot3D[] = [
-      { name: SUN.name, x: 0, y: 0, z: 0, bodyRadius: SUN.bodyRadius, color: SUN.color, kind: 'sun' },
+      {
+        name: SUN.name,
+        x: 0,
+        y: 0,
+        z: 0,
+        bodyRadius: SUN.bodyRadius,
+        color: SUN.color,
+        kind: 'sun',
+        spinRad: axialSpinRad(simDays, SUN.rotationPeriodDays),
+        obliquityRad: SUN.obliquityRad,
+      },
     ];
 
     for (const planet of PLANETS) {
@@ -205,6 +220,8 @@ export class Simulation {
         bodyRadius: planet.bodyRadius,
         color: planet.color,
         kind: 'planet',
+        spinRad: axialSpinRad(simDays, planet.rotationPeriodDays),
+        obliquityRad: planet.obliquityRad,
       });
 
       for (const moon of MOONS) {
@@ -224,6 +241,8 @@ export class Simulation {
           bodyRadius: MOON_STYLE.bodyRadius,
           color: MOON_STYLE.color,
           kind: 'moon',
+          spinRad: 0,
+          obliquityRad: 0,
         });
       }
     }
@@ -254,6 +273,8 @@ export class Simulation {
       bodyRadius: comet.bodyRadius,
       color: comet.color,
       kind: 'comet',
+      spinRad: 0,
+      obliquityRad: 0,
     };
   }
 

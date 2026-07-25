@@ -19,6 +19,15 @@ export interface PlanetSpec {
   inclinationRad: number;
   /** J2000 longitude of the ascending node (Omega) in radians. */
   ascendingNodeRad: number;
+  /** Sidereal rotation period in days. Always positive — see obliquityRad. */
+  rotationPeriodDays: number;
+  /**
+   * Axial tilt in radians, IAU convention: a value > pi/2 means the body spins
+   * retrograde. Never encode retrograde spin as a negative rotation period;
+   * the two would cancel. Applied relative to the ecliptic (a stylization: the
+   * real value is relative to the body's own orbital plane).
+   */
+  obliquityRad: number;
   /** Display radius in world units (px at zoom 1). */
   bodyRadius: number;
   color: string;

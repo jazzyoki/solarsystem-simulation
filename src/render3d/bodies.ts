@@ -6,7 +6,6 @@ const SPHERE_WIDTH_SEGMENTS = 32;
 const SPHERE_HEIGHT_SEGMENTS = 16;
 const SATURN_RING_INNER_FACTOR = 1.24;
 const SATURN_RING_OUTER_FACTOR = 2.27;
-const SATURN_RING_TILT_RAD = (26.7 * Math.PI) / 180;
 const SUN_GLOW_SCALE = 6;
 
 type BodyMaterial = THREE.MeshBasicMaterial | THREE.MeshStandardMaterial;
@@ -61,7 +60,6 @@ function createSaturnRing(bodyRadius: number, loader: THREE.TextureLoader): THRE
   });
   applyTexture(material, saturnRingUrl(), loader);
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.rotation.x = SATURN_RING_TILT_RAD;
   return mesh;
 }
 
@@ -88,8 +86,22 @@ export function createBodyObject(body: BodySnapshot3D, loader: THREE.TextureLoad
 
   const group = new THREE.Group();
   group.name = body.name;
+  // Axial tilt lives on the group, so the sphere's local z is the pole and
+  // Saturn's ring inherits the same tilt without spinning with the planet.
+  group.rotation.x = body.obliquityRad;
   group.add(new THREE.Mesh(geometry, material));
   if (body.kind === 'sun') group.add(createSunGlow(body.bodyRadius));
   if (body.name === 'Saturn') group.add(createSaturnRing(body.bodyRadius, loader));
   return group;
+}
+
+/**
+ * Spins a body group's sphere about its polar axis. The group carries the
+ * axial tilt, so the sphere's local z IS the pole; the ring and glow are
+ * siblings and stay put. Exported rather than inlined in ThreeRenderer so it
+ * is testable in jsdom — ThreeRenderer needs a real WebGL context.
+ */
+export function applyBodySpin(group: THREE.Group, spinRad: number): void {
+  const sphere = group.children[0];
+  if (sphere) sphere.rotation.z = spinRad;
 }
