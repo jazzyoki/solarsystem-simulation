@@ -126,9 +126,12 @@ TDD with Vitest, in the three existing test files.
   preserved, now expressed as 86,400×.
 - Proportionality across the range: `1_200×` over `0.1 s` → `0.0013889` days;
   `43_200×` → `0.05`; `94_608_000×` over `0.016 s` → `17.52` days.
-- New test: `1×` advances real time — `advance(0.25)` yields `0.25 / 86400`
-  days. Not a dropdown option, but it pins the "1× means real time" contract
-  this refactor exists to establish.
+- New test: the multiplier is simulated *seconds* per real second — at
+  `1_200×`, `advance(0.1)` yields exactly 120 simulated seconds. This pins the
+  contract the refactor exists to establish. (It is asserted at `1_200×` rather
+  than at `1×` because `tsconfig.json` includes `src`, so `npm run build`
+  type-checks the tests and `setMultiplier(1)` would not compile — `1` is not a
+  member of the union.)
 - Pause, clamp, and `setSimDays` tests unchanged.
 
 **`src/ui/timeScale.test.ts`**
