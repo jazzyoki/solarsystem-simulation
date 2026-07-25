@@ -31,12 +31,34 @@ body,
   display: none;
 }
 
-.toolbar {
+/*
+ * Owns the top-left position for the toolbar + picker column so the toolbar
+ * can wrap to a second row without the pickers colliding with it.
+ * - max-width is what forces the wrap; without it this shrink-to-fit stack
+ *   would keep growing past the viewport edge.
+ * - align-items: flex-start keeps both children at their content width; the
+ *   default stretch would widen the pickers to the toolbar's width.
+ * - pointer-events: none is required, not cosmetic: this box now spans the
+ *   union of both children, and a transparent container would swallow canvas
+ *   drags in the empty area beside the narrower picker column.
+ */
+.left-stack {
   position: absolute;
   top: 12px;
   left: 12px;
   display: flex;
+  flex-direction: column;
   gap: 6px;
+  max-width: calc(100% - 24px);
+  align-items: flex-start;
+  pointer-events: none;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  pointer-events: auto;
 }
 
 .toolbar button {
@@ -140,13 +162,11 @@ body,
 }
 
 .picker-column {
-  position: absolute;
-  top: 52px;
-  left: 12px;
   display: flex;
   flex-direction: column;
   gap: 6px;
   align-items: flex-start;
+  pointer-events: auto;
 }
 
 .planet-picker {
