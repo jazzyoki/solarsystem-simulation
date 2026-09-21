@@ -183,6 +183,7 @@ export function useSimulation(
             });
         }
         if (threeRenderer) {
+          threeRenderer.setFocus(focusedBodyRef.current);
           const frameComet3d = pendingCometFrameRef.current;
           if (frameComet3d !== null) {
             pendingCometFrameRef.current = null;
@@ -210,7 +211,6 @@ export function useSimulation(
             if (body3) snap3.bodies.push(body3);
           }
           threeRenderer.setSpinEnabled(axialSpinEnabled(sim.clock.multiplier));
-          threeRenderer.setFocus(focusedBodyRef.current);
           threeRenderer.sync(snap3, path3, cometName);
           threeRenderer.render();
         }
@@ -342,6 +342,11 @@ export function useSimulation(
     const focus = name === 'Sun' ? null : name;
     focusedBodyRef.current = focus;
     setFocusedBody(focus);
+    if (focus === null) {
+      // A Sun selection is a command even when no planet was being followed.
+      pendingCometFrameRef.current = null;
+      pendingResetFrameRef.current = true;
+    }
   };
 
   return {

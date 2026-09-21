@@ -3,6 +3,7 @@ import { useRef } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { drawScene } from '../render/drawScene';
 import { useSimulation } from './useSimulation';
+import { Simulation } from '../sim/simulation';
 
 vi.mock('../render/drawScene', () => ({ drawScene: vi.fn() }));
 const { renderer } = vi.hoisted(() => ({ renderer: {
@@ -118,5 +119,46 @@ describe('viewport resizing', () => {
     expect(resizedCenter.x).toBeCloseTo(center.x, 10);
     expect(resizedCenter.y).toBeCloseTo(center.y, 10);
     expect(camera.scale).toBe(scale);
+  });
+});
+
+async function enter3D() {
+  act(() => state.setMode('threeD'));
+  frame();
+  await act(async () => { await vi.dynamicImportSettled(); });
+  frame();
+}
+
+describe('Sun navigation', () => {
+  it('explicitly resets an already-unfocused 3D view on every Sun selection', async () => {
+    render(<Harness />);
+    await enter3D();
+    renderer.resetView.mockClear();
+    for (let i = 0; i < 2; i++) {
+      // Manual OrbitControls navigation does not change the hook's null focus.
+      act(() => state.selectBody('Sun'));
+      frame();
+      expect(renderer.resetView).toHaveBeenCalledTimes(i + 1);
+      expect(renderer.setFocus).toHaveBeenLastCalledWith(null);
+      expect(state.focusedBody).toBeNull();
+    }
+  });
+
+  it('releases planet following and cancels a queued comet frame when selecting Sun', async () => {
+    render(<Harness />);
+    await enter3D();
+    act(() => state.selectBody('Earth'));
+    frame();
+    expect(renderer.setFocus).toHaveBeenLastCalledWith('Earth');
+    renderer.resetView.mockClear();
+    act(() => { state.setCometsEnabled(true); state.selectComet('Halley'); });
+    act(() => state.selectBody('Sun'));
+    frame();
+    expect(renderer.resetView).toHaveBeenCalledTimes(1);
+    expect(renderer.resetView).toHaveBeenLastCalledWith(new Simulation().extent('toScale'));
+    expect(renderer.setFocus).toHaveBeenLastCalledWith(null);
+    expect(state.focusedBody).toBeNull();
+    frame();
+    expect(renderer.resetView).toHaveBeenCalledTimes(1);
   });
 });
