@@ -1,7 +1,7 @@
 import { act, render } from '@testing-library/react';
 import { useRef } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { AXIAL_SPIN_MAX_MULTIPLIER, SimClock } from '../sim/clock';
+import { AXIAL_SPIN_CUTOFF_MULTIPLIER, SimClock } from '../sim/clock';
 import { Camera } from '../render/camera';
 import { useSimulation } from './useSimulation';
 
@@ -388,7 +388,7 @@ describe('useSimulation 3D spin-gating wiring', () => {
     // Now select a multiplier at the cutoff: spin must switch to disabled.
     spinGatingCalls.length = 0;
     act(() => {
-      hookState.setMultiplier(AXIAL_SPIN_MAX_MULTIPLIER);
+      hookState.setMultiplier(AXIAL_SPIN_CUTOFF_MULTIPLIER);
     });
     act(() => {
       rafCallback?.(999);
