@@ -11,6 +11,21 @@ describe('hyperbolicAnomalyFromMean', () => {
     }
   });
 
+  it('converges near the parabolic limit with signed symmetry', () => {
+    for (const e of [1.0000051, 1 + Number.EPSILON]) {
+      for (const expected of [1e-10, 0.001, 0.1, 1, 10]) {
+        // Series avoids cancellation in the independent small-H fixture.
+        const h2 = expected * expected;
+        const M = expected < 0.01
+          ? (e - 1) * expected + e * expected * h2 * (1 / 6 + h2 / 120 + h2 * h2 / 5040)
+          : e * Math.sinh(expected) - expected;
+        const actual = hyperbolicAnomalyFromMean(M, e);
+        expect(actual / expected).toBeCloseTo(1, 9);
+        expect(hyperbolicAnomalyFromMean(-M, e)).toBe(-actual);
+      }
+    }
+  });
+
   it('returns 0 at perihelion (M = 0)', () => {
     expect(hyperbolicAnomalyFromMean(0, 3.36)).toBeCloseTo(0, 12);
   });

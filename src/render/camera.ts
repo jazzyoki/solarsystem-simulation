@@ -22,10 +22,16 @@ export class Camera {
 
   /** Zooms by `factor` while keeping `screenPoint` visually fixed. */
   zoomAt(screenPoint: BodyPosition, factor: number): void {
+    if (!(factor > 0) || !Number.isFinite(factor)) return;
+    const scale = this.scale * factor;
+    if (!(scale > 0) || !Number.isFinite(scale)) return;
     const worldPoint = this.screenToWorld(screenPoint);
-    this.scale *= factor;
-    this.centerX = screenPoint.x - worldPoint.x * this.scale;
-    this.centerY = screenPoint.y + worldPoint.y * this.scale;
+    const centerX = screenPoint.x - worldPoint.x * scale;
+    const centerY = screenPoint.y + worldPoint.y * scale;
+    if (!Number.isFinite(centerX) || !Number.isFinite(centerY)) return;
+    this.scale = scale;
+    this.centerX = centerX;
+    this.centerY = centerY;
   }
 
   panBy(dx: number, dy: number): void {

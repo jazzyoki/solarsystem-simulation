@@ -58,12 +58,16 @@ can hold only one context type).
   `data.ts`; ω is always derived as ϖ − Ω, never stored).
 - Comets in 3D use their real inclination — no mean-anomaly negation; the 2D
   modes keep using the `retrograde` flag. Selecting a comet in 3D stays in 3D
-  (only schematic force-switches to To Scale).
+  (only schematic force-switches to To Scale). Explicitly switching back to
+  Schematic clears the selected comet and its pending camera frame.
 - Moons are a deliberate stylization: ecliptic-parallel rings at the parent's
   z (no per-moon elements). The belt gets per-asteroid random i ≤ 8° and Ω.
 - Navigation: Three `OrbitControls` (damping, min/max distance,
   zoom-to-cursor, 1-finger rotate / 2-finger pinch-pan, double-click
-  re-centers the Sun).
+  re-centers the Sun). Selecting Sun in the planet picker always requests an
+  overview reset, even after manual navigation with no followed planet.
+- Overview and comet framing fit a bounding sphere using the viewport aspect
+  and effective camera FOV; controls distance and far plane accommodate the fit.
 - No text labels in 3D (v1); bodies without a texture render flat-colored.
 - Textures: `public/textures/` (Solar System Scope, CC BY 4.0, attributed in
   README). Meshes show their flat color until the map loads.
@@ -116,7 +120,7 @@ Path color is a deliberate educational cue: **green = bound orbit** (`short` or 
 Orbit math lives entirely in `src/sim/`:
 
 - **`kepler.ts`** — the existing planet Kepler solver (`M = E − e·sin(E)`) is hardened with a Newton+bisection fallback so it stays convergent at the high eccentricities comets have (vs. planets' near-circular orbits).
-- **`hyperbolicOrbit.ts`** (new) — solves the hyperbolic Kepler equation `M = e·sinh(H) − H` for the hyperbolic anomaly `H` via Newton–Raphson (seeded from `asinh(M/e)`), then converts `H` to true anomaly.
+- **`hyperbolicOrbit.ts`** (new) — solves the hyperbolic Kepler equation `M = e·sinh(H) − H` for the hyperbolic anomaly `H` via bracketed Newton steps with bisection fallback and a cancellation-resistant small-anomaly residual, then converts `H` to true anomaly. This must remain stable for near-parabolic ISON (`e = 1.0000051`).
 - **`cometOrbit.ts`** (new) — `cometPositionAu` and `cometPathAu`. Mean motion is unified across all comet classes via Gauss's gravitational constant, `n = k / |a|^1.5` (`GAUSS_K = 0.01720209895` AU^1.5/day, `|a|` so the same formula works for hyperbolic `a < 0`) — no stored per-comet period. Position is parameterized by time of perihelion passage rather than epoch mean anomaly: `M(t) = n · (simDays − Tp)`, where `Tp` is stored as `perihelionTimeSimDays = Tp_JD − 2461041.5` (JD converted into the sim's day-0 epoch). `M` is negated for `retrograde` comets (inclination > 90°) to reverse ecliptic motion.
   - **Radius uses the polar conic form** `r = q(1+e) / (1 + e·cos(ν))` — anchored on the stored perihelion distance `q`, not on `a(1−e)` — so the comet marker always sits exactly on its own drawn path. This is a deliberate refinement: `a`, `e`, and `q` are independently-sourced, rounded JPL elements that don't satisfy `a(1−e) = q` to full precision, so computing radius from `a` instead of `q` would visibly detach the body from the path near perihelion.
   - The path sampler (`cometPathAu`) builds a polyline symmetric in true anomaly about perihelion, windowed per class as described above, using `COMET_PATH_SEGMENTS = 128` segments.
@@ -129,6 +133,10 @@ Orbital elements are sourced from the JPL Small-Body Database. Comet ISON is fla
 
 - Keep `src/sim/` pure: it computes positions only; it knows nothing about the Canvas API, React, or screen state. Impure reads (e.g. `Date.now()`) belong in the hook, not in `src/sim/`.
 - Both scale modes must agree on each planet's longitude at `simDays = 0` — derive the epoch mean anomaly from the stored epoch longitude so switching modes never jumps an angle or resets the clock.
+- Resizing the 2D viewport preserves its center world point and zoom, including
+  a temporary zero-size container; the initial positive size fits the overview.
+- Historical date parsing uses explicit full-year assignment (avoiding
+  `Date.UTC`'s 1900 offset for years 0–99); positive years use four-digit minimum padding.
 - Seeking to a date (date picker or "Today") pauses the simulation; the user resumes manually. Startup, by contrast, seeds to today and keeps running.
 - Put visual concerns (opacity, colors, labels, belts) in `src/render/` (2D) or `src/render3d/` (3D). Three.js is imported only under `src/render3d/` (the hook reaches it solely via `import('../render3d')` plus type-only imports).
 - Follow existing test style: mock `CanvasRenderingContext2D` for render tests, use `toBeCloseTo` for floating-point assertions. Three.js geometry/material factories are unit-testable in jsdom; only `WebGLRenderer` (i.e. `ThreeRenderer` itself) is not — keep it a thin shell over tested pieces.

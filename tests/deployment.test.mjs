@@ -9,10 +9,10 @@ function readProjectFile(path) {
 }
 
 describe('production deployment configuration', () => {
-  it('builds and atomically deploys main through SSH', () => {
+  it('builds and atomically deploys master through SSH', () => {
     const workflow = readProjectFile('.github/workflows/deploy.yml');
 
-    expect(workflow).toContain('branches: [main]');
+    expect(workflow).toContain('branches: [master]');
     expect(workflow).toContain('npm ci');
     expect(workflow).toContain('npm test');
     expect(workflow).toContain('npm run build');

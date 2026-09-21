@@ -15,7 +15,7 @@ A browser-based, stylized solar system visualization built with React, TypeScrip
 - **Starts on today's date.** On launch the clock seeds to today's UTC date and keeps running, so you first see today's constellation.
 - **Clickable date + date picker.** Click the date to reveal a native date input; picking a date seeks the simulation to that date at 00:00 UTC and pauses.
 - **"Today" button** beside the date seeks back to today's UTC date and pauses.
-- **Comets.** Turn on the "Comets" toggle in the toolbar to reveal a picker of 15 famous comets. Pick one to focus it — from Schematic the view switches to To Scale (in 3D mode it stays 3D, showing the comet's real inclined orbit) and frames the comet's orbit (a full ellipse for short-period comets; a near-Sun arc for long-period and interstellar ones), drawing its path and an exaggerated, labeled comet body (with tail) at its real position for the current simulated date. Path color tells you what kind of orbit it is: **green** means the comet is bound and returns periodically; **red** means it's on an unbound, one-time pass through the inner solar system (including interstellar visitors like 'Oumuamua and Borisov). Use **"Jump to perihelion"** to seek the clock straight to the comet's closest approach to the Sun.
+- **Comets.** Turn on the "Comets" toggle in the toolbar to reveal a picker of 15 famous comets. Switching back to Schematic clears the comet selection. Pick one to focus it — from Schematic the view switches to To Scale (in 3D mode it stays 3D, showing the comet's real inclined orbit) and frames the comet's orbit (a full ellipse for short-period comets; a near-Sun arc for long-period and interstellar ones), drawing its path and an exaggerated, labeled comet body (with tail) at its real position for the current simulated date. Path color tells you what kind of orbit it is: **green** means the comet is bound and returns periodically; **red** means it's on an unbound, one-time pass through the inner solar system (including interstellar visitors like 'Oumuamua and Borisov). Use **"Jump to perihelion"** to seek the clock straight to the comet's closest approach to the Sun.
 
 ## Getting Started
 
@@ -34,7 +34,7 @@ Open the URL shown in your terminal (usually `http://localhost:5173`).
 
 ## Production Deployment
 
-Pushing to `main` builds, tests, and deploys the static Vite output through the
+Pushing to `master` builds, tests, and deploys the static Vite output through the
 GitHub Actions workflow. The Debian server only needs Nginx and an SSH account
 with passwordless `sudo`; it does not run Vite or require Node.js.
 
@@ -61,8 +61,9 @@ build or upload fails, the previously deployed release remains active.
 - Schematic mode uses constant-speed circular motion offset by the 2026 epoch phase. To Scale mode solves Kepler's equation (`M = E − e·sin(E)`) via Newton–Raphson (`src/sim/kepler.ts`) and places bodies on real elliptical orbits (`src/sim/ellipticalOrbit.ts`); both derive the epoch mean anomaly from the same stored epoch longitude so day-0 positions match.
 - `SimClock` tracks simulated days; `setSimDays` seeks the clock, and `formatDate.ts` converts between a `YYYY-MM-DD` string / real timestamp and integer `simDays` (`dateInputToSimDays`, `timestampToSimDays`). The impure `Date.now()` read lives in the hook so `src/sim/` stays pure.
 - 3D mode lifts the same in-plane Keplerian solve into ecliptic 3D via the classic `Rz(Ω)·Rx(i)·Rz(ω)` rotation (`src/sim/orbit3d.ts`), so 2D and 3D always agree on each body's orbital phase. Comets use their real inclinations in 3D (retrograde motion emerges naturally from `i > 90°`).
+- The 3D overview and comet frames account for viewport aspect and field of view, including portrait screens. Selecting Sun always recenters the overview.
 - All Three.js code lives in `src/render3d/` and ships as a separate code-split chunk, dynamically imported when the user first switches to 3D and fully disposed on switching away. The 2D and 3D views use two stacked `<canvas>` elements (a canvas can hold only one context type).
-- `Camera` maps world coordinates to screen coordinates; switching modes re-fits the camera and rebuilds the belt while preserving the clock and date.
+- `Camera` maps world coordinates to screen coordinates; resizing preserves the viewed center and zoom; switching modes re-fits the camera and rebuilds the belt while preserving the clock and date.
 - `drawScene` renders orbit guides (circles or rotated ellipses per mode), the asteroid belt, bodies, and labels.
 - Moon visibility and labels use a screen-coverage threshold so detail appears only when planets are large enough to see clearly.
 

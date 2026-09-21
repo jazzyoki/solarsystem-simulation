@@ -67,6 +67,8 @@ export function useSimulation(
     let width = 0;
     let height = 0;
     let fitted = false;
+    let lastViewportWidth = 0;
+    let lastViewportHeight = 0;
     const resize = () => {
       const dpr = window.devicePixelRatio || 1;
       width = sizeSource.clientWidth;
@@ -78,6 +80,13 @@ export function useSimulation(
         const scaleMode = currentMode;
         camera.fitToView(sim.extent(scaleMode), width, height);
         fitted = true;
+      } else if (fitted && width > 0 && height > 0) {
+        // Keep the same world point under the viewport center, preserving zoom.
+        camera.panBy((width - lastViewportWidth) / 2, (height - lastViewportHeight) / 2);
+      }
+      if (width > 0 && height > 0) {
+        lastViewportWidth = width;
+        lastViewportHeight = height;
       }
       threeRenderer?.setSize(width, height, dpr);
     };
@@ -174,6 +183,7 @@ export function useSimulation(
             });
         }
         if (threeRenderer) {
+          threeRenderer.setFocus(focusedBodyRef.current);
           const frameComet3d = pendingCometFrameRef.current;
           if (frameComet3d !== null) {
             pendingCometFrameRef.current = null;
@@ -201,7 +211,6 @@ export function useSimulation(
             if (body3) snap3.bodies.push(body3);
           }
           threeRenderer.setSpinEnabled(axialSpinEnabled(sim.clock.multiplier));
-          threeRenderer.setFocus(focusedBodyRef.current);
           threeRenderer.sync(snap3, path3, cometName);
           threeRenderer.render();
         }
@@ -221,7 +230,7 @@ export function useSimulation(
           pendingResetFrameRef.current = false;
           camera.fitToView(sim.extent(scaleMode), width, height);
         }
-        const cometPathRender = selectedCometRef.current && cometsEnabledRef.current
+        const cometPathRender = scaleMode === 'toScale' && selectedCometRef.current && cometsEnabledRef.current
           ? sim.cometPath(selectedCometRef.current)
           : null;
         const snapshot = sim.snapshot(scaleMode);
@@ -276,6 +285,11 @@ export function useSimulation(
   };
 
   const setMode = (m: ViewMode) => {
+    if (m === 'schematic') {
+      selectedCometRef.current = null;
+      setSelectedComet(null);
+      pendingCometFrameRef.current = null;
+    }
     applyModeRef.current(m);
     setModeState(m);
   };
@@ -328,6 +342,11 @@ export function useSimulation(
     const focus = name === 'Sun' ? null : name;
     focusedBodyRef.current = focus;
     setFocusedBody(focus);
+    if (focus === null) {
+      // A Sun selection is a command even when no planet was being followed.
+      pendingCometFrameRef.current = null;
+      pendingResetFrameRef.current = true;
+    }
   };
 
   return {
