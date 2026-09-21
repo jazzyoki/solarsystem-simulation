@@ -4,6 +4,7 @@ import type { Vec3 } from '../sim/types';
 import { applyBodySpin, createBodyObject } from './bodies';
 import { createBeltPoints, updateBeltPositions, type BeltAsteroid3D } from './belt';
 import { createControls, type ControlsHandle } from './controls';
+import { frameBoundingSphere } from './framing';
 import { createCometPathLine, createOrbitLine } from './orbits';
 
 const BACKGROUND = 0x0a0e1a;
@@ -36,6 +37,7 @@ export class ThreeRenderer {
   private cometLine: { key: string; line: THREE.Line } | null = null;
   private tailLine: THREE.Line;
   private overviewExtent: number;
+  private hasViewport = false;
   private onFocusCleared?: () => void;
   private requestedFocus: string | null = null;
   private appliedFocus: string | null = null;
@@ -92,17 +94,23 @@ export class ThreeRenderer {
   }
 
   setSize(width: number, height: number, dpr: number): void {
+    if (width <= 0 || height <= 0) return;
     this.renderer.setPixelRatio(dpr);
     this.renderer.setSize(width, height, false);
     this.camera.aspect = width / Math.max(height, 1);
     this.camera.updateProjectionMatrix();
+    if (!this.hasViewport) {
+      this.hasViewport = true;
+      this.resetView(this.overviewExtent);
+    }
   }
 
   /** Frames a world radius: focus on the Sun, ~30° above the ecliptic. */
   resetView(extent: number): void {
     this.controls.target.set(0, 0, 0);
-    this.camera.position.set(0, -extent * 1.2, extent * 0.7);
-    this.camera.lookAt(0, 0, 0);
+    const distance = frameBoundingSphere(this.camera, extent);
+    // OrbitControls must not clamp a portrait overview on the next render.
+    this.controls.maxDistance = Math.max(this.controls.maxDistance, distance * 1.1);
   }
 
   /** Request the camera to frame + follow a body by name; null releases. */
