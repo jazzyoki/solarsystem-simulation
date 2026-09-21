@@ -43,3 +43,23 @@ describe('Camera', () => {
     expect(cam.scale).toBeCloseTo(300 / 1050, 10);
   });
 });
+
+describe('Camera invalid zoom protection', () => {
+  it.each([0, -1, Infinity, NaN])('ignores factor %s without changing the transform', (factor) => {
+    const camera = new Camera();
+    camera.fitToView(100, 800, 600);
+    const before = { ...camera };
+    camera.zoomAt({ x: 100, y: 100 }, factor);
+    expect({ ...camera }).toEqual(before);
+  });
+
+  it('rejects overflow and underflow without losing the previous view', () => {
+    const camera = new Camera();
+    camera.scale = Number.MAX_VALUE;
+    camera.zoomAt({ x: 1, y: 1 }, 2);
+    expect(camera.scale).toBe(Number.MAX_VALUE);
+    camera.scale = Number.MIN_VALUE;
+    camera.zoomAt({ x: 0, y: 0 }, 0.5);
+    expect(camera.scale).toBe(Number.MIN_VALUE);
+  });
+});

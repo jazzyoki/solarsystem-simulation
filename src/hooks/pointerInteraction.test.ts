@@ -87,3 +87,31 @@ describe('PointerInteraction', () => {
     expect(camera.centerY).toBeCloseTo(300);
   });
 });
+
+describe('degenerate pinch gestures', () => {
+  it('recovers when two pointers coincide and separate', () => {
+    const camera = freshCamera();
+    const input = new PointerInteraction(camera);
+    input.pointerDown(1, { x: 100, y: 100 });
+    input.pointerDown(2, { x: 200, y: 100 });
+    input.pointerMove(2, { x: 100, y: 100 });
+    input.pointerMove(2, { x: 110, y: 100 });
+    expect(Number.isFinite(camera.scale)).toBe(true);
+    expect(Number.isFinite(camera.centerX)).toBe(true);
+    expect(Number.isFinite(camera.centerY)).toBe(true);
+    const scale = camera.scale;
+    input.pointerMove(2, { x: 120, y: 100 });
+    expect(camera.scale).toBeCloseTo(scale * 2);
+  });
+
+  it('can begin with coincident pointers', () => {
+    const camera = freshCamera();
+    const input = new PointerInteraction(camera);
+    input.pointerDown(1, { x: 100, y: 100 });
+    input.pointerDown(2, { x: 100, y: 100 });
+    input.pointerMove(2, { x: 150, y: 100 });
+    expect(camera.scale).toBe(2);
+    input.pointerMove(2, { x: 200, y: 100 });
+    expect(camera.scale).toBe(4);
+  });
+});

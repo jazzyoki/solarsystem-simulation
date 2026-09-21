@@ -94,7 +94,10 @@ export class PointerInteraction {
         currentMid.x - this.previousPinch.midpoint.x,
         currentMid.y - this.previousPinch.midpoint.y,
       );
-      if (currentSpan > 0) {
+      if (
+        currentSpan > 0 && Number.isFinite(currentSpan) &&
+        this.previousPinch.span > 0 && Number.isFinite(this.previousPinch.span)
+      ) {
         this.camera.zoomAt(currentMid, currentSpan / this.previousPinch.span);
       }
 
