@@ -25,6 +25,13 @@ describe('meanMotion', () => {
 });
 
 describe('cometPositionAu', () => {
+  it('propagates actual near-parabolic ISON at contemporary dates', () => {
+    const ison = COMETS.find((c) => c.name === 'ISON')!;
+    for (const [days, radius] of [[0, 29.648863], [263, 30.81655159]]) {
+      expect(distance(ison, days)).toBeCloseTo(radius, 6);
+    }
+  });
+
   it('places a bound comet at perihelion distance q at Tp', () => {
     const halley = byName('Halley');
     expect(distance(halley, halley.perihelionTimeSimDays)).toBeCloseTo(halley.perihelionDistanceAu, 4);

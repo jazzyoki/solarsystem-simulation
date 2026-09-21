@@ -104,6 +104,14 @@ const encke = COMETS.find((c) => c.name === 'Encke')!;
 const borisov = COMETS.find((c) => c.name === 'Borisov')!;
 
 describe('cometPosition3dAu', () => {
+  it('propagates actual near-parabolic ISON at contemporary dates', () => {
+    const ison = COMETS.find((c) => c.name === 'ISON')!;
+    for (const [days, radius] of [[0, 29.648863], [263, 30.81655159]]) {
+      const p = cometPosition3dAu(ison, days);
+      expect(Math.hypot(p.x, p.y, p.z)).toBeCloseTo(radius, 6);
+    }
+  });
+
   it('matches the 2D heliocentric distance for every comet (orientation cannot change r)', () => {
     for (const c of COMETS) {
       const t = c.perihelionTimeSimDays + 30;
