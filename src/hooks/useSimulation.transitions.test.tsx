@@ -84,3 +84,39 @@ describe('comet mode transitions', () => {
     expect(lastDraw()[8]).toBeNull();
   });
 });
+
+describe('viewport resizing', () => {
+  it('keeps the Sun centered when the viewport shrinks', () => {
+    render(<Harness />);
+    frame();
+    const camera = lastDraw()[3];
+    const scale = camera.scale;
+    width = 390;
+    height = 844;
+    act(() => onResize());
+    frame();
+    expect(camera.worldToScreen({ x: 0, y: 0 })).toEqual({ x: 195, y: 422 });
+    expect(camera.scale).toBe(scale);
+  });
+
+  it('preserves a panned world center across a temporary zero-size container', () => {
+    render(<Harness />);
+    frame();
+    const camera = lastDraw()[3];
+    camera.panBy(80, -40);
+    camera.zoomAt({ x: 600, y: 400 }, 2);
+    const center = camera.screenToWorld({ x: 600, y: 400 });
+    const scale = camera.scale;
+    width = 0;
+    height = 0;
+    act(() => onResize());
+    width = 390;
+    height = 844;
+    act(() => onResize());
+    frame();
+    const resizedCenter = camera.screenToWorld({ x: 195, y: 422 });
+    expect(resizedCenter.x).toBeCloseTo(center.x, 10);
+    expect(resizedCenter.y).toBeCloseTo(center.y, 10);
+    expect(camera.scale).toBe(scale);
+  });
+});

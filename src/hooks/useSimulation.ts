@@ -67,6 +67,8 @@ export function useSimulation(
     let width = 0;
     let height = 0;
     let fitted = false;
+    let lastViewportWidth = 0;
+    let lastViewportHeight = 0;
     const resize = () => {
       const dpr = window.devicePixelRatio || 1;
       width = sizeSource.clientWidth;
@@ -78,6 +80,13 @@ export function useSimulation(
         const scaleMode = currentMode;
         camera.fitToView(sim.extent(scaleMode), width, height);
         fitted = true;
+      } else if (fitted && width > 0 && height > 0) {
+        // Keep the same world point under the viewport center, preserving zoom.
+        camera.panBy((width - lastViewportWidth) / 2, (height - lastViewportHeight) / 2);
+      }
+      if (width > 0 && height > 0) {
+        lastViewportWidth = width;
+        lastViewportHeight = height;
       }
       threeRenderer?.setSize(width, height, dpr);
     };
