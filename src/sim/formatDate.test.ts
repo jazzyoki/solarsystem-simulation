@@ -30,6 +30,20 @@ describe('formatSimDate', () => {
 });
 
 describe('dateInputToSimDays', () => {
+  it.each(['0001-01-01', '0099-12-31', '0100-01-01', '0999-12-31', '0004-02-29'])(
+    'roundtrips historical date %s without the Date.UTC century remapping', (value) => {
+      const days = dateInputToSimDays(value);
+      expect(days).toBe((Date.parse(`${value}T00:00:00Z`) - Date.UTC(2026, 0, 1)) / 86_400_000);
+      expect(formatSimDate(days)).toBe(value);
+    },
+  );
+
+  it('preserves leap-day boundaries in early years', () => {
+    const leapDay = dateInputToSimDays('0004-02-29');
+    expect(formatSimDate(leapDay - 1)).toBe('0004-02-28');
+    expect(formatSimDate(leapDay + 1)).toBe('0004-03-01');
+  });
+
   it('maps the epoch date to 0', () => {
     expect(dateInputToSimDays('2026-01-01')).toBe(0);
   });
