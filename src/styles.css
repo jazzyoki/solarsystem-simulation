@@ -54,10 +54,22 @@ body,
   pointer-events: none;
 }
 
+/*
+ * The toolbar box itself is transparent — only its buttons and selects paint —
+ * and it stretches to the stack's max-width, so once flex-wrap splits it the
+ * last row is only partly filled. pointer-events: none on the box (with auto
+ * on the controls) keeps that ragged remainder, and the gaps between controls,
+ * pass-through: a drag or double-click there must still reach the canvas.
+ */
 .toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  pointer-events: none;
+}
+
+.toolbar button,
+.toolbar select {
   pointer-events: auto;
 }
 
