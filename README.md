@@ -34,7 +34,7 @@ Open the URL shown in your terminal (usually `http://localhost:5173`).
 
 ## Production Deployment
 
-Pushing to `main` builds, tests, and deploys the static Vite output through the
+Pushing to `master` builds, tests, and deploys the static Vite output through the
 GitHub Actions workflow. The Debian server only needs Nginx and an SSH account
 with passwordless `sudo`; it does not run Vite or require Node.js.
 
