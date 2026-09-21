@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  AXIAL_SPIN_MAX_MULTIPLIER,
+  AXIAL_SPIN_CUTOFF_MULTIPLIER,
   axialSpinEnabled,
   DEFAULT_SPEED_MULTIPLIER,
   SimClock,
@@ -89,7 +89,7 @@ describe('axialSpinEnabled', () => {
   });
 
   it('puts the boundary between 1s = 24 h and 1s = 1 month', () => {
-    expect(AXIAL_SPIN_MAX_MULTIPLIER).toBe(2_592_000);
+    expect(AXIAL_SPIN_CUTOFF_MULTIPLIER).toBe(2_592_000);
     expect(axialSpinEnabled(86_400)).toBe(true);
     expect(axialSpinEnabled(2_592_000)).toBe(false);
   });

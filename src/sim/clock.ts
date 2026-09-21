@@ -26,11 +26,15 @@ export const DEFAULT_SPEED_MULTIPLIER: SpeedMultiplier = 86_400;
  * Axial rotation in the 3D view stays legible only below 1 simulated month per
  * real second. Above it a fast rotator strobes: Jupiter would spin 72 turns a
  * second at 1s = 1 month, versus 2.4 at 1s = 24 h.
+ *
+ * This is the first *disabled* speed, not the fastest enabled one — the
+ * comparison below is `<`, and loosening it to `<=` would enable the exact
+ * 72-turns-a-second case this cutoff exists to prevent.
  */
-export const AXIAL_SPIN_MAX_MULTIPLIER = 2_592_000;
+export const AXIAL_SPIN_CUTOFF_MULTIPLIER: SpeedMultiplier = 2_592_000;
 
 export function axialSpinEnabled(multiplier: SpeedMultiplier): boolean {
-  return multiplier < AXIAL_SPIN_MAX_MULTIPLIER;
+  return multiplier < AXIAL_SPIN_CUTOFF_MULTIPLIER;
 }
 
 const SECONDS_PER_DAY = 86_400;
