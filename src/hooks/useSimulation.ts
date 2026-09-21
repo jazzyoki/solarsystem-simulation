@@ -221,7 +221,7 @@ export function useSimulation(
           pendingResetFrameRef.current = false;
           camera.fitToView(sim.extent(scaleMode), width, height);
         }
-        const cometPathRender = selectedCometRef.current && cometsEnabledRef.current
+        const cometPathRender = scaleMode === 'toScale' && selectedCometRef.current && cometsEnabledRef.current
           ? sim.cometPath(selectedCometRef.current)
           : null;
         const snapshot = sim.snapshot(scaleMode);
@@ -276,6 +276,11 @@ export function useSimulation(
   };
 
   const setMode = (m: ViewMode) => {
+    if (m === 'schematic') {
+      selectedCometRef.current = null;
+      setSelectedComet(null);
+      pendingCometFrameRef.current = null;
+    }
     applyModeRef.current(m);
     setModeState(m);
   };
