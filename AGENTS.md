@@ -64,8 +64,8 @@ can hold only one context type).
   z (no per-moon elements). The belt gets per-asteroid random i ≤ 8° and Ω.
 - Navigation: Three `OrbitControls` (damping, min/max distance,
   zoom-to-cursor, 1-finger rotate / 2-finger pinch-pan, double-click
-  re-centers the Sun). Selecting Sun in the planet picker always requests an
-  overview reset, even after manual navigation with no followed planet.
+  re-centers the Sun). Selecting Sun in the planet picker frames the Sun up close like the planets.
+  The empty picker option releases focus and returns to the overview.
 - Overview and comet framing fit a bounding sphere using the viewport aspect
   and effective camera FOV; controls distance and far plane accommodate the fit.
 - No text labels in 3D (v1); bodies without a texture render flat-colored.
