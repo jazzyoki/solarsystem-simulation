@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 import { Simulation } from '../sim/simulation';
-import { COMETS } from '../sim/data';
+import { COMETS, SUN } from '../sim/data';
 import type { Vec3 } from '../sim/types';
 import { ThreeRenderer } from './ThreeRenderer';
 
@@ -18,9 +18,9 @@ vi.mock('three', async (importOriginal) => ({
 
 const sim = new Simulation();
 const renderers: ThreeRenderer[] = [];
-afterEach(() => { renderers.splice(0).forEach((r) => r.dispose()); draw.mockClear(); });
-function create() {
-  const renderer = new ThreeRenderer(document.createElement('canvas'), sim.orbitPaths3D(), [], sim.extent('toScale'));
+afterEach(() => { renderers.splice(0).forEach((r) => r.dispose()); draw.mockClear(); vi.restoreAllMocks(); });
+function create(canvas = document.createElement('canvas'), onFocusCleared?: () => void) {
+  const renderer = new ThreeRenderer(canvas, sim.orbitPaths3D(), [], sim.extent('toScale'), onFocusCleared);
   renderers.push(renderer);
   return renderer;
 }
@@ -71,5 +71,31 @@ describe('3D viewport framing with actual camera projection', () => {
     expect(camera.position.distanceTo(position)).toBe(0);
     renderer.resetView(sim.extent('toScale'));
     expectVisible(cameraFrom(renderer), sim.orbitPaths3D().flat());
+  });
+});
+
+
+describe('Sun body framing', () => {
+  it('frames the Sun up close and returns to the overview on double-click', () => {
+    // Only WebGL and the decorative glow canvas are unavailable in jsdom.
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
+    const canvas = document.createElement('canvas');
+    const released = vi.fn();
+    const renderer = create(canvas, released);
+    renderer.setSize(390, 844, 1);
+    const overviewDistance = cameraFrom(renderer).position.length();
+    const snapshot = sim.snapshot3D();
+    snapshot.bodies = snapshot.bodies.filter(body => body.kind === 'sun');
+    renderer.setFocus('Sun');
+    renderer.sync(snapshot, null, null);
+    const camera = cameraFrom(renderer);
+    expect(camera.position.length()).toBeGreaterThan(SUN.bodyRadius * 7);
+    expect(camera.position.length()).toBeLessThan(SUN.bodyRadius * 9);
+    expect(new THREE.Vector3(0, 0, 0).project(camera).x).toBeCloseTo(0, 8);
+    expect(new THREE.Vector3(0, 0, 0).project(camera).y).toBeCloseTo(0, 8);
+    canvas.dispatchEvent(new MouseEvent('dblclick'));
+    expect(released).toHaveBeenCalledTimes(1);
+    renderer.sync(snapshot, null, null);
+    expect(cameraFrom(renderer).position.length()).toBeCloseTo(overviewDistance, 6);
   });
 });

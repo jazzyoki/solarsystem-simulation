@@ -338,12 +338,11 @@ export function useSimulation(
     if (comet) seekToDate(comet.perihelionTimeSimDays);
   };
 
-  const selectBody = (name: string | null) => {
-    const focus = name === 'Sun' ? null : name;
+  const selectBody = (focus: string | null) => {
     focusedBodyRef.current = focus;
     setFocusedBody(focus);
     if (focus === null) {
-      // A Sun selection is a command even when no planet was being followed.
+      // Releasing focus resets the overview even after manual navigation.
       pendingCometFrameRef.current = null;
       pendingResetFrameRef.current = true;
     }

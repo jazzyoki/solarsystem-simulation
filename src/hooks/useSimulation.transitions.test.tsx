@@ -130,21 +130,21 @@ async function enter3D() {
 }
 
 describe('Sun navigation', () => {
-  it('explicitly resets an already-unfocused 3D view on every Sun selection', async () => {
+  it('focuses the Sun as a body without resetting to the full-system view', async () => {
     render(<Harness />);
     await enter3D();
     renderer.resetView.mockClear();
-    for (let i = 0; i < 2; i++) {
-      // Manual OrbitControls navigation does not change the hook's null focus.
-      act(() => state.selectBody('Sun'));
-      frame();
-      expect(renderer.resetView).toHaveBeenCalledTimes(i + 1);
-      expect(renderer.setFocus).toHaveBeenLastCalledWith(null);
-      expect(state.focusedBody).toBeNull();
-    }
+    act(() => state.selectBody('Sun'));
+    frame();
+    expect(renderer.setFocus).toHaveBeenLastCalledWith('Sun');
+    expect(state.focusedBody).toBe('Sun');
+    expect(renderer.resetView).not.toHaveBeenCalled();
+    frame();
+    expect(renderer.setFocus).toHaveBeenLastCalledWith('Sun');
+    expect(renderer.resetView).not.toHaveBeenCalled();
   });
 
-  it('releases planet following and cancels a queued comet frame when selecting Sun', async () => {
+  it('switches from a planet to the Sun without letting queued comet framing take over', async () => {
     render(<Harness />);
     await enter3D();
     act(() => state.selectBody('Earth'));
@@ -154,11 +154,24 @@ describe('Sun navigation', () => {
     act(() => { state.setCometsEnabled(true); state.selectComet('Halley'); });
     act(() => state.selectBody('Sun'));
     frame();
+    expect(renderer.setFocus).toHaveBeenLastCalledWith('Sun');
+    expect(state.focusedBody).toBe('Sun');
+    expect(renderer.resetView).not.toHaveBeenCalled();
+    frame();
+    expect(renderer.resetView).not.toHaveBeenCalled();
+  });
+
+  it('returns to the overview when the empty picker option releases the Sun', async () => {
+    render(<Harness />);
+    await enter3D();
+    act(() => state.selectBody('Sun'));
+    frame();
+    renderer.resetView.mockClear();
+    act(() => state.selectBody(null));
+    frame();
+    expect(state.focusedBody).toBeNull();
+    expect(renderer.setFocus).toHaveBeenLastCalledWith(null);
     expect(renderer.resetView).toHaveBeenCalledTimes(1);
     expect(renderer.resetView).toHaveBeenLastCalledWith(new Simulation().extent('toScale'));
-    expect(renderer.setFocus).toHaveBeenLastCalledWith(null);
-    expect(state.focusedBody).toBeNull();
-    frame();
-    expect(renderer.resetView).toHaveBeenCalledTimes(1);
   });
 });

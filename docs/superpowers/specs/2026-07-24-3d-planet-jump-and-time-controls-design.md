@@ -2,6 +2,8 @@
 
 Date: 2026-07-24
 
+Sun selection semantics updated by [Sun close-up navigation](2026-09-22-sun-closeup-design.md).
+
 ## Motivation
 
 With the 3D view mode shipped, some users struggle to navigate to individual
@@ -26,8 +28,8 @@ framing in `useSimulation`, the already-present mobile `<select>`s).
   `CometPicker.tsx`: a single `<select className="planet-select">` with a
   leading `Select a planet…` placeholder option and an `aria-label="Planet"`.
 - Options: **Sun + the 8 planets + Pluto** (10 entries), in Sun→Pluto order.
-  Selecting **Sun** (or the empty placeholder) is the *release* — it returns
-  to the Sun-centered view. Moons are **out of scope** for v1.
+  Selecting **Sun** frames and tracks the Sun as a body, like a planet. The
+  empty placeholder is the *release* — it returns to the full-system overview. Moons are **out of scope** for v1.
 - Rendered by `App.tsx` **only when `mode === 'threeD'`**. In the two 2D modes
   the picker is not mounted.
 - The option list is derived from a small static list of focusable body names
@@ -39,8 +41,8 @@ framing in `useSimulation`, the already-present mobile `<select>`s).
 - `useSimulation` gains `focusedBody: string | null` React state plus a
   `focusedBodyRef` (mirrors the existing `selectedComet` / `selectedCometRef`
   pattern), exposed as `focusedBody` and `selectBody(name: string | null)`.
-- `selectBody('Sun')` and `selectBody(null)` are equivalent (both release);
-  `App` maps the picker's empty value and the `Sun` value to the release.
+- `selectBody('Sun')` focuses the Sun; `selectBody(null)` releases focus.
+  The picker preserves the selected body name, including Sun.
 - On **mode change away from `threeD`**, `focusedBody` resets to `null`.
 
 ### Renderer follow behavior (`src/render3d/ThreeRenderer.ts`)
@@ -63,7 +65,7 @@ positions.
   follow-camera: the planet stays centered at any clock speed while the user's
   own rotate/zoom offset is preserved. (Damping still runs in
   `controls.update()`.)
-- **Release** (focus name became `null`/`Sun`): call `resetView(extent)` once
+- **Release** (focus name became `null`): call `resetView(extent)` once
   and clear `lastFocusPos`. `extent` is the current to-scale extent already
   used elsewhere in the loop.
 
@@ -79,7 +81,7 @@ next frame would immediately re-grab the planet, so double-click must also
 clear the focus **state**. `ThreeRenderer` accepts an `onFocusCleared`
 callback (constructor option or setter); the `dblclick` handler invokes it, and
 `useSimulation` wires it to `setFocusedBody(null)` so the dropdown snaps back to
-`Sun`/placeholder. The callback runs through React state, so it is safe to call
+the placeholder. The callback runs through React state, so it is safe to call
 from the DOM event.
 
 ## Feature 2 — Time-scale label
@@ -135,7 +137,7 @@ single absolutely-positioned container:
 
 - **`timeScaleLabel`** — unit test covering all five multipliers.
 - **`PlanetPicker`** — renders the placeholder + 10 options, fires `onSelect`
-  with the chosen name and with `null`/`Sun` for release.
+  with the chosen name (including Sun) and with `null` for release.
 - **`Toolbar`** — updated tests assert the speed and mode `<select>`s (not
   button groups) and that the time-scale label text matches the current
   multiplier.

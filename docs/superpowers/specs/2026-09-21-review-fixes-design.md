@@ -26,8 +26,9 @@ neither is required to correct the demonstrated failures.
 6. On 2D resize preserve the world point at the viewport center and zoom level;
    initial sizing still fits the overview. Preserve the last nonzero viewport
    dimensions across a temporary zero-size container.
-7. Selecting Sun issues an explicit overview reset even when already unfocused.
-   It clears follow state; subsequent frames must not restore the old target.
+7. Selecting Sun originally issued an explicit overview reset. This behavior
+   is superseded by [Sun close-up navigation](2026-09-22-sun-closeup-design.md):
+   Sun now receives body framing, and the empty picker option releases focus.
 8. Parse historical years through explicit full-year assignment and format
    positive years with at least four digits. Preserve existing UTC day semantics.
 
